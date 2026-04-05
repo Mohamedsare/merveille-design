@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { AppPostHogProvider } from "@/components/providers/posthog-provider";
+import { getPublicSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -18,6 +19,7 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
+  metadataBase: getPublicSiteUrl(),
   title: {
     default: "Merveill design | Sacs & box artisanaux Burkina Faso",
     template: "%s · Merveill design",
