@@ -45,7 +45,11 @@ export function ProductDetailDialog({
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="w-full text-xs sm:flex-1 sm:text-sm">
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full px-2 text-[11px] sm:flex-1 sm:px-3 sm:text-sm"
+        >
           Détails
         </Button>
       </DialogTrigger>

@@ -103,7 +103,7 @@ export function ModelsGallery({
           </div>
         </div>
 
-        <div className="mt-10 grid grid-cols-2 gap-x-3 gap-y-5 max-[359px]:grid-cols-1 sm:gap-x-6 sm:gap-y-6 lg:grid-cols-3">
+        <div className="mt-10 grid grid-cols-2 gap-x-2 gap-y-4 sm:gap-x-6 sm:gap-y-6 lg:grid-cols-3">
           <AnimatePresence mode="popLayout">
             {shown.map((p, i) => {
               const cat = categories.find((c) => c.id === p.category_id);
@@ -125,12 +125,12 @@ export function ModelsGallery({
                           alt={p.name}
                           fill
                           className="object-cover"
-                          sizes="(max-width: 359px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          sizes="(max-width: 1024px) 50vw, 33vw"
                         />
                       ) : null}
                       {p.is_featured ? (
                         <Badge
-                          className="absolute left-2 top-2 px-1.5 py-0 text-[10px] sm:left-3 sm:top-3 sm:px-2.5 sm:py-0.5 sm:text-xs"
+                          className="absolute left-1 top-1 max-w-[calc(100%-0.5rem)] truncate px-1 py-0 text-[9px] leading-tight sm:left-3 sm:top-3 sm:max-w-none sm:px-2.5 sm:py-0.5 sm:text-xs"
                           variant="gold"
                         >
                           Coup de cœur
@@ -138,28 +138,34 @@ export function ModelsGallery({
                       ) : null}
                       {galleryCount > 1 ? (
                         <Badge
-                          className="absolute bottom-2 right-2 bg-black/60 px-1.5 py-0 text-[10px] text-white backdrop-blur-sm sm:bottom-3 sm:right-3 sm:px-2.5 sm:text-xs"
+                          className="absolute bottom-1 right-1 bg-black/60 px-1 py-0 text-[9px] text-white backdrop-blur-sm sm:bottom-3 sm:right-3 sm:px-2.5 sm:text-xs"
                           variant="secondary"
                         >
                           {galleryCount} photos
                         </Badge>
                       ) : null}
                     </div>
-                    <CardContent className="space-y-2 p-3 sm:space-y-3 sm:p-5">
+                    <CardContent className="space-y-1.5 p-2 sm:space-y-3 sm:p-5">
                       <div className="flex flex-wrap gap-1 sm:gap-2">
-                        <Badge variant="outline" className="text-[10px] sm:text-xs">
+                        <Badge variant="outline" className="max-w-full truncate text-[9px] sm:max-w-none sm:text-xs">
                           {cat?.name ?? p.type}
                         </Badge>
                         {p.is_model_only ? (
-                          <Badge variant="secondary" className="text-[10px] sm:text-xs">
-                            Modèle référence
+                          <Badge variant="secondary" className="max-w-full truncate text-[9px] sm:max-w-none sm:text-xs">
+                            <span className="sm:hidden">Réf.</span>
+                            <span className="hidden sm:inline">Modèle référence</span>
                           </Badge>
                         ) : null}
                         {p.is_customizable ? (
-                          <Badge className="text-[10px] sm:text-xs">Personnalisable</Badge>
+                          <Badge className="text-[9px] sm:text-xs">
+                            <span className="sm:hidden">Perso</span>
+                            <span className="hidden sm:inline">Personnalisable</span>
+                          </Badge>
                         ) : null}
                       </div>
-                      <h3 className="font-display text-sm font-semibold leading-snug sm:text-lg">{p.name}</h3>
+                      <h3 className="font-display text-[13px] font-semibold leading-tight sm:text-lg sm:leading-snug">
+                        {p.name}
+                      </h3>
                       <p className="line-clamp-2 text-xs text-[var(--muted-foreground)] sm:text-sm">
                         {p.short_description}
                       </p>
@@ -170,18 +176,19 @@ export function ModelsGallery({
                             ? `À partir de ${formatPriceXOF(p.base_price)}`
                             : formatPriceXOF(p.base_price)}
                       </p>
-                      <div className="flex flex-col gap-2 pt-1 sm:flex-row">
+                      <div className="flex flex-col gap-1.5 pt-0.5 sm:flex-row sm:gap-2 sm:pt-1">
                         <ProductDetailDialog product={p} categoryName={cat?.name} />
                         <OrderSheet
                           mode="model"
                           product={p}
                           trigger={
                             <Button
-                              variant="secondary"
-                              className="w-full text-xs sm:flex-1 sm:text-sm"
+                              variant="default"
+                              className="w-full px-2 text-[11px] sm:flex-1 sm:px-3 sm:text-sm"
                               size="sm"
                             >
-                              Commander ce modèle
+                              <span className="sm:hidden">Commander</span>
+                              <span className="hidden sm:inline">Commander ce modèle</span>
                             </Button>
                           }
                         />
@@ -191,10 +198,11 @@ export function ModelsGallery({
                           trigger={
                             <Button
                               variant="outline"
-                              className="w-full text-xs sm:flex-1 sm:text-sm"
+                              className="w-full px-2 text-[11px] sm:flex-1 sm:px-3 sm:text-sm"
                               size="sm"
                             >
-                              Personnaliser
+                              <span className="sm:hidden">Perso.</span>
+                              <span className="hidden sm:inline">Personnaliser</span>
                             </Button>
                           }
                         />
