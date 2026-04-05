@@ -9,7 +9,7 @@ export const demoSettings: SiteSettings = {
   hero_subtitle:
     "Élégance, savoir-faire et personnalisation — du premier regard à la livraison, à Ouagadougou et partout au Burkina Faso.",
   whatsapp_number: "22600000000",
-  contact_email: "contact@merveilldesign.bf",
+  contact_email: "mervelle-design@gmail.com",
   social_links: { instagram: "#", facebook: "#" },
   theme_config: {},
   seo_title: "Merveill design | Sacs & box Burkina Faso",

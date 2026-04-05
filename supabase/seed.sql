@@ -6,7 +6,7 @@ select
   'Sacs artisanaux & box cadeaux sur mesure',
   'Élégance, savoir-faire et personnalisation — du premier regard à la livraison.',
   '22600000000',
-  'contact@merveilldesign.bf',
+  'mervelle-design@gmail.com',
   'Merveill design | Sacs à main & box cadeaux Burkina Faso',
   'Sacs à main artisanaux, coffrets cadeaux et formations à Ouagadougou et au Burkina Faso. Commande sur mesure, livraison et accompagnement premium.'
 where not exists (select 1 from public.site_settings limit 1);
