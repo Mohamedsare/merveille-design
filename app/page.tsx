@@ -34,13 +34,13 @@ export default async function HomePage() {
       <PublicHeader settings={settings} />
       <main>
         <HeroSection settings={settings} />
-        <ModelsGallery products={products} categories={categories} />
-        <HowItWorksSection />
-        <BoxSection boxProducts={boxProducts} />
-        <TrainingsSection trainings={trainings} />
-        <TestimonialsSection />
+        <ModelsGallery products={products} categories={categories} settings={settings} />
+        <HowItWorksSection settings={settings} />
+        <BoxSection boxProducts={boxProducts} settings={settings} />
+        <TrainingsSection trainings={trainings} settings={settings} />
+        <TestimonialsSection settings={settings} />
         <ScrollReveal>
-          <FAQSection />
+          <FAQSection settings={settings} />
         </ScrollReveal>
         <ScrollReveal delay={0.05}>
           <ContactSection settings={settings} />

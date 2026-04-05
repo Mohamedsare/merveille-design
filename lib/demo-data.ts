@@ -9,6 +9,13 @@ export const demoSettings: SiteSettings = {
   hero_subtitle:
     "Élégance, savoir-faire et personnalisation — du premier regard à la livraison, à Ouagadougou et partout au Burkina Faso.",
   hero_image_url: null,
+  box_section_image_url: null,
+  models_section_banner_url: null,
+  trainings_section_banner_url: null,
+  how_it_works_image_url: null,
+  testimonials_section_image_url: null,
+  faq_section_image_url: null,
+  contact_section_image_url: null,
   whatsapp_number: "22600000000",
   contact_email: "mervelle-design@gmail.com",
   social_links: { instagram: "#", facebook: "#" },

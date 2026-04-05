@@ -6,10 +6,18 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatPriceXOF } from "@/lib/utils";
-import type { Training } from "@/types/database";
+import type { SiteSettings, Training } from "@/types/database";
 import { TrainingBookingSheet } from "@/features/public/training-booking-sheet";
 
-export function TrainingsSection({ trainings }: { trainings: Training[] }) {
+export function TrainingsSection({
+  trainings,
+  settings,
+}: {
+  trainings: Training[];
+  settings: SiteSettings;
+}) {
+  const banner = settings.trainings_section_banner_url?.trim();
+
   return (
     <section id="formations" className="scroll-mt-20 bg-[var(--card)] px-4 py-16 sm:px-6 md:py-24">
       <div className="mx-auto max-w-6xl">
@@ -18,6 +26,11 @@ export function TrainingsSection({ trainings }: { trainings: Training[] }) {
           Apprenez la fabrication de sacs et de box en atelier présentiel, dans une ambiance bienveillante
           et professionnelle.
         </p>
+        {banner ? (
+          <div className="relative mt-8 aspect-[21/9] max-h-64 w-full overflow-hidden rounded-2xl shadow-soft ring-1 ring-[var(--border)]/80">
+            <Image src={banner} alt="" fill className="object-cover" sizes="(max-width: 1200px) 100vw, 1152px" />
+          </div>
+        ) : null}
         <div className="mt-10 grid gap-8 md:grid-cols-2">
           {trainings.map((t, i) => (
             <motion.div

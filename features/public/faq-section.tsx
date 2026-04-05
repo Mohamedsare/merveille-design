@@ -1,9 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import type { SiteSettings } from "@/types/database";
 
 const faqs = [
   {
@@ -32,8 +34,9 @@ const faqs = [
   },
 ];
 
-export function FAQSection() {
+export function FAQSection({ settings }: { settings: SiteSettings }) {
   const [open, setOpen] = useState<number | null>(0);
+  const banner = settings.faq_section_image_url?.trim();
 
   return (
     <section id="faq" className="scroll-mt-20 bg-(--card) px-4 py-16 sm:px-6 md:py-24">
@@ -44,6 +47,11 @@ export function FAQSection() {
         <p className="mt-3 text-(--muted-foreground)">
           Les réponses aux objections les plus courantes — pour avancer sereinement.
         </p>
+        {banner ? (
+          <div className="relative mt-8 aspect-[16/7] max-h-52 w-full overflow-hidden rounded-2xl ring-1 ring-(--border)/80">
+            <Image src={banner} alt="" fill className="object-cover" sizes="768px" />
+          </div>
+        ) : null}
         <ul className="mt-10 space-y-3">
           {faqs.map((item, i) => {
             const isOpen = open === i;

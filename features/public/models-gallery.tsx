@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useTrackEvent } from "@/hooks/use-analytics";
 import { cn, formatPriceXOF } from "@/lib/utils";
-import type { Category, Product } from "@/types/database";
+import type { Category, Product, SiteSettings } from "@/types/database";
 import { ProductDetailDialog } from "@/features/public/product-detail-dialog";
 import { OrderSheet } from "@/features/public/order-sheet";
 
@@ -19,9 +19,11 @@ type Filter = "all" | "bag" | "box";
 export function ModelsGallery({
   products,
   categories,
+  settings,
 }: {
   products: Product[];
   categories: Category[];
+  settings: SiteSettings;
 }) {
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
@@ -50,6 +52,18 @@ export function ModelsGallery({
             Chaque pièce peut servir de base : couleurs, matières et finitions s’adaptent à votre style.
           </p>
         </div>
+
+        {settings.models_section_banner_url?.trim() ? (
+          <div className="relative mt-8 aspect-[21/9] max-h-72 w-full overflow-hidden rounded-2xl shadow-soft ring-1 ring-[var(--border)]/80">
+            <Image
+              src={settings.models_section_banner_url.trim()}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="(max-width: 1200px) 100vw, 1152px"
+            />
+          </div>
+        ) : null}
 
         <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative flex-1 sm:max-w-sm">

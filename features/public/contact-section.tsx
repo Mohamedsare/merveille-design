@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ export function ContactSection({ settings }: { settings: SiteSettings }) {
   const [pending, startTransition] = useTransition();
   const track = useTrackEvent();
   const wa = (settings.whatsapp_number ?? "").replace(/\D/g, "");
+  const contactBanner = settings.contact_section_image_url?.trim();
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -41,6 +43,11 @@ export function ContactSection({ settings }: { settings: SiteSettings }) {
       className="scroll-mt-20 px-3 py-12 pb-[max(3rem,env(safe-area-inset-bottom))] sm:px-5 sm:py-16 md:px-6 md:py-24"
     >
       <div className="mx-auto max-w-6xl rounded-2xl bg-gradient-to-br from-[var(--primary)]/90 to-[var(--primary)] p-5 text-[var(--primary-foreground)] shadow-soft sm:rounded-3xl sm:p-8 md:rounded-[2rem] md:p-12">
+        {contactBanner ? (
+          <div className="relative mb-6 aspect-[21/9] max-h-56 w-full overflow-hidden rounded-xl ring-2 ring-white/20">
+            <Image src={contactBanner} alt="" fill className="object-cover" sizes="(max-width: 1200px) 100vw, 1152px" />
+          </div>
+        ) : null}
         <div className="grid gap-8 sm:gap-10 lg:grid-cols-2 lg:gap-16">
           <div className="min-w-0">
             <h2 className="font-display text-2xl font-semibold leading-[1.15] tracking-tight sm:text-3xl md:text-4xl">

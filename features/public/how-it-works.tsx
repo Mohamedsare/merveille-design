@@ -1,7 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { CheckCircle2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { SiteSettings } from "@/types/database";
 
 const steps = [
   { title: "Choix & inspiration", text: "Vous sélectionnez un modèle existant ou partagez vos idées." },
@@ -11,7 +14,9 @@ const steps = [
   { title: "Livraison", text: "Contrôle qualité, emballage soigné, remise ou envoi." },
 ];
 
-export function HowItWorksSection() {
+export function HowItWorksSection({ settings }: { settings: SiteSettings }) {
+  const img = settings.how_it_works_image_url?.trim();
+
   return (
     <section id="commander" className="scroll-mt-20 bg-[var(--card)] px-4 py-16 sm:px-6 md:py-24">
       <div className="mx-auto max-w-6xl">
@@ -22,7 +27,18 @@ export function HowItWorksSection() {
           Un parcours clair, pensé pour vous rassurer à chaque étape — du premier message à la réception de
           votre pièce.
         </p>
-        <ol className="mt-12 space-y-6">
+        <div
+          className={cn(
+            "mt-12",
+            img && "lg:grid lg:grid-cols-2 lg:items-start lg:gap-12"
+          )}
+        >
+          {img ? (
+            <div className="relative mb-8 aspect-[4/5] max-h-[28rem] w-full overflow-hidden rounded-2xl shadow-soft ring-1 ring-[var(--border)]/80 lg:mb-0 lg:max-h-[32rem] lg:sticky lg:top-28">
+              <Image src={img} alt="" fill className="object-cover" sizes="(max-width: 1024px) 100vw, 45vw" />
+            </div>
+          ) : null}
+          <ol className="space-y-6">
           {steps.map((s, i) => (
             <motion.li
               key={s.title}
@@ -44,7 +60,8 @@ export function HowItWorksSection() {
               </div>
             </motion.li>
           ))}
-        </ol>
+          </ol>
+        </div>
       </div>
     </section>
   );

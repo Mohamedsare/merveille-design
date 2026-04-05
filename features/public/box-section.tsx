@@ -3,11 +3,22 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import type { Product } from "@/types/database";
+import type { Product, SiteSettings } from "@/types/database";
 import { OrderSheet } from "@/features/public/order-sheet";
 
-export function BoxSection({ boxProducts }: { boxProducts: Product[] }) {
+const BOX_FALLBACK =
+  "https://images.unsplash.com/photo-1549465220-576843087d93?w=900&q=85";
+
+export function BoxSection({
+  boxProducts,
+  settings,
+}: {
+  boxProducts: Product[];
+  settings: SiteSettings;
+}) {
   const featured = boxProducts[0];
+  const src =
+    settings.box_section_image_url?.trim() || featured?.cover_image_url || BOX_FALLBACK;
 
   return (
     <section id="box" className="scroll-mt-20 px-4 py-16 sm:px-6 md:py-24">
@@ -19,10 +30,7 @@ export function BoxSection({ boxProducts }: { boxProducts: Product[] }) {
           className="relative aspect-[4/5] overflow-hidden rounded-[2rem] shadow-soft ring-1 ring-[var(--border)]"
         >
           <Image
-            src={
-              featured?.cover_image_url ??
-              "https://images.unsplash.com/photo-1549465220-576843087d93?w=900&q=85"
-            }
+            src={src}
             alt="Box cadeaux Merveill design"
             fill
             className="object-cover"
