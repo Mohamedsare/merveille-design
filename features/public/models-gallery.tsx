@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useTrackEvent } from "@/hooks/use-analytics";
+import { buildProductGalleryUrls } from "@/lib/product-images";
 import { cn, formatPriceXOF } from "@/lib/utils";
 import type { Category, Product, SiteSettings } from "@/types/database";
 import { ProductDetailDialog } from "@/features/public/product-detail-dialog";
@@ -102,10 +103,11 @@ export function ModelsGallery({
           </div>
         </div>
 
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid grid-cols-2 gap-x-3 gap-y-5 max-[359px]:grid-cols-1 sm:gap-x-6 sm:gap-y-6 lg:grid-cols-3">
           <AnimatePresence mode="popLayout">
             {shown.map((p, i) => {
               const cat = categories.find((c) => c.id === p.category_id);
+              const galleryCount = buildProductGalleryUrls(p).length;
               return (
                 <motion.div
                   key={p.id}
@@ -123,26 +125,45 @@ export function ModelsGallery({
                           alt={p.name}
                           fill
                           className="object-cover"
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          sizes="(max-width: 359px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         />
                       ) : null}
                       {p.is_featured ? (
-                        <Badge className="absolute left-3 top-3" variant="gold">
+                        <Badge
+                          className="absolute left-2 top-2 px-1.5 py-0 text-[10px] sm:left-3 sm:top-3 sm:px-2.5 sm:py-0.5 sm:text-xs"
+                          variant="gold"
+                        >
                           Coup de cœur
                         </Badge>
                       ) : null}
+                      {galleryCount > 1 ? (
+                        <Badge
+                          className="absolute bottom-2 right-2 bg-black/60 px-1.5 py-0 text-[10px] text-white backdrop-blur-sm sm:bottom-3 sm:right-3 sm:px-2.5 sm:text-xs"
+                          variant="secondary"
+                        >
+                          {galleryCount} photos
+                        </Badge>
+                      ) : null}
                     </div>
-                    <CardContent className="space-y-3 p-5">
-                      <div className="flex flex-wrap gap-2">
-                        <Badge variant="outline">{cat?.name ?? p.type}</Badge>
-                        {p.is_model_only ? <Badge variant="secondary">Modèle référence</Badge> : null}
-                        {p.is_customizable ? <Badge>Personnalisable</Badge> : null}
+                    <CardContent className="space-y-2 p-3 sm:space-y-3 sm:p-5">
+                      <div className="flex flex-wrap gap-1 sm:gap-2">
+                        <Badge variant="outline" className="text-[10px] sm:text-xs">
+                          {cat?.name ?? p.type}
+                        </Badge>
+                        {p.is_model_only ? (
+                          <Badge variant="secondary" className="text-[10px] sm:text-xs">
+                            Modèle référence
+                          </Badge>
+                        ) : null}
+                        {p.is_customizable ? (
+                          <Badge className="text-[10px] sm:text-xs">Personnalisable</Badge>
+                        ) : null}
                       </div>
-                      <h3 className="font-display text-lg font-semibold">{p.name}</h3>
-                      <p className="line-clamp-2 text-sm text-[var(--muted-foreground)]">
+                      <h3 className="font-display text-sm font-semibold leading-snug sm:text-lg">{p.name}</h3>
+                      <p className="line-clamp-2 text-xs text-[var(--muted-foreground)] sm:text-sm">
                         {p.short_description}
                       </p>
-                      <p className="text-sm font-medium text-[var(--primary)]">
+                      <p className="text-xs font-medium text-[var(--primary)] sm:text-sm">
                         {p.pricing_mode === "quote"
                           ? "Sur devis"
                           : p.pricing_mode === "starting_from"
@@ -155,7 +176,11 @@ export function ModelsGallery({
                           mode="model"
                           product={p}
                           trigger={
-                            <Button variant="secondary" className="w-full sm:flex-1" size="sm">
+                            <Button
+                              variant="secondary"
+                              className="w-full text-xs sm:flex-1 sm:text-sm"
+                              size="sm"
+                            >
                               Commander ce modèle
                             </Button>
                           }
@@ -164,7 +189,11 @@ export function ModelsGallery({
                           mode="custom"
                           product={p}
                           trigger={
-                            <Button variant="outline" className="w-full sm:flex-1" size="sm">
+                            <Button
+                              variant="outline"
+                              className="w-full text-xs sm:flex-1 sm:text-sm"
+                              size="sm"
+                            >
                               Personnaliser
                             </Button>
                           }

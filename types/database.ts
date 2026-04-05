@@ -50,6 +50,8 @@ export interface Product {
   is_featured: boolean;
   is_published: boolean;
   cover_image_url: string | null;
+  /** Galerie additionnelle (hors couverture) — rempli par select imbriqué Supabase */
+  product_images?: ProductImage[] | null;
   tags: string[] | null;
   display_order: number;
   stock: number | null;

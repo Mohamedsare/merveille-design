@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
+import { ProductGalleryEditor } from "@/components/admin/product-gallery-editor";
 import { deleteProduct, upsertProduct } from "@/actions/admin-products";
 import { AdminImageField } from "@/components/admin/admin-image-field";
 import { Button } from "@/components/ui/button";
@@ -49,7 +50,11 @@ export function ProductsAdmin({
     startTransition(async () => {
       const res = await upsertProduct(edit?.id ?? null, raw);
       if (res.ok) {
-        toast.success(edit ? "Produit mis à jour" : "Produit créé");
+        toast.success(
+          edit
+            ? "Produit mis à jour"
+            : "Produit créé. Ouvrez « Modifier » pour ajouter d’autres photos à la galerie."
+        );
         close();
       } else toast.error("error" in res ? res.error : "Erreur");
     });
@@ -158,6 +163,12 @@ export function ProductsAdmin({
                 label="Image de couverture"
                 defaultUrl={edit?.cover_image_url}
               />
+              {edit?.id ? (
+                <ProductGalleryEditor
+                  productId={edit.id}
+                  images={edit.product_images ?? []}
+                />
+              ) : null}
               <div className="space-y-1">
                 <Label htmlFor="display_order">Ordre</Label>
                 <Input

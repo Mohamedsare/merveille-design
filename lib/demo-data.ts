@@ -71,6 +71,18 @@ export const demoProducts: Product[] = [
     is_published: true,
     cover_image_url:
       "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=800&q=80",
+    product_images: [
+      {
+        id: "demo-pi-1",
+        product_id: "p1",
+        image_url: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=800&q=80",
+        original_image_url: null,
+        enhanced_image_url: null,
+        enhancement_status: "none",
+        sort_order: 0,
+        created_at: "",
+      },
+    ],
     tags: ["cabas", "cuir"],
     display_order: 1,
     stock: null,

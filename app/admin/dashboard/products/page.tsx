@@ -8,7 +8,22 @@ export default async function AdminProductsPage() {
   let categories: Category[] = [];
   if (supabase) {
     const [{ data: p }, { data: c }] = await Promise.all([
-      supabase.from("products").select("*").order("display_order"),
+      supabase
+        .from("products")
+        .select(
+          `*,
+          product_images (
+            id,
+            product_id,
+            image_url,
+            original_image_url,
+            enhanced_image_url,
+            enhancement_status,
+            sort_order,
+            created_at
+          )`
+        )
+        .order("display_order"),
       supabase.from("categories").select("*").order("sort_order"),
     ]);
     products = (p as Product[]) ?? [];

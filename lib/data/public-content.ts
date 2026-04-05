@@ -25,7 +25,19 @@ export async function getPublicProducts(): Promise<Product[]> {
   if (!supabase) return demoProducts;
   const { data } = await supabase
     .from("products")
-    .select("*")
+    .select(
+      `*,
+      product_images (
+        id,
+        product_id,
+        image_url,
+        original_image_url,
+        enhanced_image_url,
+        enhancement_status,
+        sort_order,
+        created_at
+      )`
+    )
     .eq("is_published", true)
     .order("display_order");
   return (data as Product[])?.length ? (data as Product[]) : demoProducts;
