@@ -13,7 +13,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
-import { submitProductOrder } from "@/actions/orders";
+import { submitProductOrderForm } from "@/actions/orders";
 import { useTrackEvent } from "@/hooks/use-analytics";
 import type { Product } from "@/types/database";
 
@@ -41,27 +41,13 @@ export function OrderSheet({
           ? ("box" as const)
           : ("custom_bag" as const)
         : product.type;
-    const raw = {
-      customer_name: fd.get("customer_name"),
-      phone: fd.get("phone"),
-      email: fd.get("email") || "",
-      city: fd.get("city") || "",
-      country: fd.get("country") || "Burkina Faso",
-      order_type,
-      product_id: product.id,
-      quantity: fd.get("quantity") || 1,
-      budget: fd.get("budget") || "",
-      customization_request: fd.get("customization_request") || "",
-      details: fd.get("details"),
-      fabric_color_notes: fd.get("fabric_color_notes") || "",
-      inspiration_image_url: fd.get("inspiration_image_url") || "",
-      preferred_date: fd.get("preferred_date") || "",
-    };
+    fd.set("order_type", order_type);
+    fd.set("product_id", product.id);
     startTransition(async () => {
       void track(mode === "model" ? "model_order_click" : "personalization_request_click", {
         productId: product.id,
       });
-      const res = await submitProductOrder(raw);
+      const res = await submitProductOrderForm(fd);
       if (res.ok) {
         toast.success("Demande envoyée. Nous vous recontactons très vite.");
         setOpen(false);
@@ -127,12 +113,21 @@ export function OrderSheet({
             <Input id="preferred_date" name="preferred_date" type="date" />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="inspiration_image_url">Lien photo d’inspiration (optionnel)</Label>
+            <Label htmlFor="inspiration_image_file">Photo d’inspiration (optionnel)</Label>
             <Input
-              id="inspiration_image_url"
+              id="inspiration_image_file"
+              name="inspiration_image_file"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="cursor-pointer text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--muted)] file:px-3 file:py-1.5 file:text-sm"
+            />
+            <p className="text-xs text-[var(--muted-foreground)]">
+              JPEG, PNG, WebP ou GIF — max 5 Mo. Sinon indiquez un lien ci-dessous.
+            </p>
+            <Input
               name="inspiration_image_url"
               type="url"
-              placeholder="https://…"
+              placeholder="Ou lien vers une image (https://…)"
             />
           </div>
           <div className="space-y-2">

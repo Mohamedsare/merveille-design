@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { toast } from "sonner";
 import { updateSiteSettings } from "@/actions/admin-settings";
+import { AdminImageField } from "@/components/admin/admin-image-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +21,7 @@ export function SiteSettingsForm({ row }: { row: SiteSettings }) {
         site_name: fd.get("site_name"),
         hero_title: fd.get("hero_title"),
         hero_subtitle: fd.get("hero_subtitle"),
+        hero_image_url: fd.get("hero_image_url") || "",
         whatsapp_number: fd.get("whatsapp_number"),
         contact_email: fd.get("contact_email"),
         seo_title: fd.get("seo_title"),
@@ -45,6 +47,12 @@ export function SiteSettingsForm({ row }: { row: SiteSettings }) {
         <Label htmlFor="hero_subtitle">Sous-titre hero</Label>
         <Textarea id="hero_subtitle" name="hero_subtitle" defaultValue={row.hero_subtitle ?? ""} rows={3} />
       </div>
+      <AdminImageField
+        name="hero_image_url"
+        folder="hero"
+        label="Image principale du hero"
+        defaultUrl={row.hero_image_url}
+      />
       <div className="space-y-2">
         <Label htmlFor="whatsapp_number">WhatsApp (indicatif sans +)</Label>
         <Input id="whatsapp_number" name="whatsapp_number" defaultValue={row.whatsapp_number ?? ""} />

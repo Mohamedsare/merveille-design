@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { deleteProduct, upsertProduct } from "@/actions/admin-products";
+import { AdminImageField } from "@/components/admin/admin-image-field";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -150,15 +151,13 @@ export function ProductsAdmin({
                   </select>
                 </div>
               </div>
-              <div className="space-y-1">
-                <Label htmlFor="cover_image_url">URL image</Label>
-                <Input
-                  id="cover_image_url"
-                  name="cover_image_url"
-                  type="url"
-                  defaultValue={edit?.cover_image_url ?? ""}
-                />
-              </div>
+              <AdminImageField
+                key={`cover-${edit?.id ?? "new"}`}
+                name="cover_image_url"
+                folder="products"
+                label="Image de couverture"
+                defaultUrl={edit?.cover_image_url}
+              />
               <div className="space-y-1">
                 <Label htmlFor="display_order">Ordre</Label>
                 <Input

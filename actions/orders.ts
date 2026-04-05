@@ -2,11 +2,69 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createServiceSupabaseClient } from "@/lib/supabase/service";
+import { safeImageExtension, validateImageFile } from "@/lib/media-upload";
 import {
   contactQuickSchema,
   orderProductSchema,
   orderTrainingSchema,
 } from "@/validation/schemas";
+
+async function uploadOrderInspirationToStorage(
+  file: File
+): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+  const valid = validateImageFile(file);
+  if (!valid.ok) return valid;
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) {
+    return {
+      ok: false,
+      error:
+        "Envoi de fichier indisponible. Ajoutez SUPABASE_SERVICE_ROLE_KEY côté serveur ou utilisez un lien vers la photo.",
+    };
+  }
+  const ext = safeImageExtension(file.name, file.type);
+  const path = `inspiration/${Date.now()}-${crypto.randomUUID().slice(0, 10)}.${ext}`;
+  const buf = Buffer.from(await file.arrayBuffer());
+  const { error } = await supabase.storage.from("media").upload(path, buf, {
+    contentType: file.type,
+    upsert: false,
+  });
+  if (error) return { ok: false, error: error.message };
+  const { data } = supabase.storage.from("media").getPublicUrl(path);
+  return { ok: true, url: data.publicUrl };
+}
+
+/** Formulaire commande produit (champs + fichier inspiration optionnel). */
+export async function submitProductOrderForm(formData: FormData) {
+  const file = formData.get("inspiration_image_file");
+  let inspiration = String(formData.get("inspiration_image_url") ?? "").trim();
+
+  if (file instanceof File && file.size > 0) {
+    const up = await uploadOrderInspirationToStorage(file);
+    if (!up.ok) return up;
+    inspiration = up.url;
+  }
+
+  const raw = {
+    customer_name: formData.get("customer_name"),
+    phone: formData.get("phone"),
+    email: formData.get("email") || "",
+    city: formData.get("city") || "",
+    country: formData.get("country") || "Burkina Faso",
+    order_type: formData.get("order_type"),
+    product_id: formData.get("product_id") || null,
+    quantity: formData.get("quantity") || 1,
+    budget: formData.get("budget") || "",
+    customization_request: formData.get("customization_request") || "",
+    details: formData.get("details"),
+    fabric_color_notes: formData.get("fabric_color_notes") || "",
+    inspiration_image_url: inspiration,
+    preferred_date: formData.get("preferred_date") || "",
+  };
+
+  return submitProductOrder(raw);
+}
 
 export async function submitProductOrder(raw: unknown) {
   const parsed = orderProductSchema.safeParse(raw);

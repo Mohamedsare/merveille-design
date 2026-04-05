@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useMotionValueEvent, useScroll } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -20,12 +20,23 @@ const nav = [
 
 export function PublicHeader({ settings }: { settings: SiteSettings }) {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const { scrollY } = useScroll();
+
+  useMotionValueEvent(scrollY, "change", (y) => {
+    setScrolled(y > 12);
+  });
 
   return (
     <motion.header
       initial={{ y: -12, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="sticky top-0 z-40 border-b border-[var(--border)]/80 bg-[var(--background)]/85 backdrop-blur-md"
+      className={cn(
+        "sticky top-0 z-40 border-b backdrop-blur-md transition-[box-shadow,background-color,border-color] duration-300 ease-out",
+        scrolled
+          ? "border-[var(--border)] bg-[var(--background)]/95 shadow-soft"
+          : "border-[var(--border)]/80 bg-[var(--background)]/85"
+      )}
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link href="/" className="flex items-center" aria-label={settings.site_name}>

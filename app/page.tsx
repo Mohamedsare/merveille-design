@@ -15,6 +15,7 @@ import { FAQSection } from "@/features/public/faq-section";
 import { ContactSection } from "@/features/public/contact-section";
 import { PublicFooter } from "@/features/public/public-footer";
 import { WhatsAppFloat } from "@/features/public/whatsapp-float";
+import { ScrollReveal } from "@/components/motion/scroll-reveal";
 import { PublicPageClient } from "@/features/public/public-page-client";
 
 export default async function HomePage() {
@@ -38,8 +39,12 @@ export default async function HomePage() {
         <BoxSection boxProducts={boxProducts} />
         <TrainingsSection trainings={trainings} />
         <TestimonialsSection />
-        <FAQSection />
-        <ContactSection settings={settings} />
+        <ScrollReveal>
+          <FAQSection />
+        </ScrollReveal>
+        <ScrollReveal delay={0.05}>
+          <ContactSection settings={settings} />
+        </ScrollReveal>
       </main>
       <PublicFooter settings={settings} />
       <WhatsAppFloat number={settings.whatsapp_number ?? "22600000000"} />

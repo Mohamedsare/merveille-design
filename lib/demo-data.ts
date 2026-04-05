@@ -8,6 +8,7 @@ export const demoSettings: SiteSettings = {
   hero_title: "Sacs artisanaux & box cadeaux sur mesure",
   hero_subtitle:
     "Élégance, savoir-faire et personnalisation — du premier regard à la livraison, à Ouagadougou et partout au Burkina Faso.",
+  hero_image_url: null,
   whatsapp_number: "22600000000",
   contact_email: "mervelle-design@gmail.com",
   social_links: { instagram: "#", facebook: "#" },

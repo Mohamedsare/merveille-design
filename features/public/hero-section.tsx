@@ -8,8 +8,12 @@ import { Button } from "@/components/ui/button";
 import { useTrackEvent } from "@/hooks/use-analytics";
 import type { SiteSettings } from "@/types/database";
 
+const HERO_FALLBACK =
+  "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=900&q=85";
+
 export function HeroSection({ settings }: { settings: SiteSettings }) {
   const track = useTrackEvent();
+  const heroSrc = settings.hero_image_url?.trim() || HERO_FALLBACK;
 
   return (
     <section className="relative overflow-hidden px-4 pb-20 pt-10 sm:px-6 sm:pt-14 md:pb-28">
@@ -66,7 +70,7 @@ export function HeroSection({ settings }: { settings: SiteSettings }) {
           <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-[var(--card)] to-[var(--muted)]/40 shadow-soft ring-1 ring-[var(--border)]" />
           <div className="relative h-full overflow-hidden rounded-[2rem]">
             <Image
-              src="https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=900&q=85"
+              src={heroSrc}
               alt="Sac artisanal premium Merveill design"
               fill
               className="object-cover"

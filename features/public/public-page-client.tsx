@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { usePageView, useTrackEvent } from "@/hooks/use-analytics";
+import { PremiumScroll } from "@/features/public/premium-scroll";
 import { ScrollDepthTracker } from "@/features/public/scroll-depth-tracker";
 
 export function PublicPageClient() {
@@ -12,5 +13,10 @@ export function PublicPageClient() {
     void track("session_start", {});
   }, [track]);
 
-  return <ScrollDepthTracker />;
+  return (
+    <>
+      <PremiumScroll />
+      <ScrollDepthTracker />
+    </>
+  );
 }

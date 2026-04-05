@@ -93,6 +93,7 @@ export interface SiteSettings {
   favicon_url: string | null;
   hero_title: string | null;
   hero_subtitle: string | null;
+  hero_image_url: string | null;
   whatsapp_number: string | null;
   contact_email: string | null;
   social_links: Record<string, string> | null;

@@ -13,7 +13,10 @@ export const orderProductSchema = z.object({
   customization_request: z.string().optional(),
   details: z.string().min(10, "Décrivez votre besoin (10 caractères min)"),
   fabric_color_notes: z.string().optional(),
-  inspiration_image_url: z.string().url().optional().or(z.literal("")),
+  inspiration_image_url: z
+    .union([z.literal(""), z.string().url()])
+    .optional()
+    .transform((v) => v ?? ""),
   preferred_date: z.string().optional(),
 });
 
@@ -60,7 +63,7 @@ export const productAdminSchema = z.object({
   is_model_only: z.boolean(),
   is_featured: z.boolean(),
   is_published: z.boolean(),
-  cover_image_url: z.string().url().optional().or(z.literal("")),
+  cover_image_url: z.union([z.literal(""), z.string().url()]).optional(),
   tags: z.array(z.string()).optional(),
   display_order: z.coerce.number().int().default(0),
   stock: z.coerce.number().int().optional().nullable(),
@@ -77,6 +80,6 @@ export const trainingAdminSchema = z.object({
   level: z.string().optional(),
   mode: z.string().optional(),
   is_published: z.boolean(),
-  cover_image_url: z.string().url().optional().or(z.literal("")),
+  cover_image_url: z.union([z.literal(""), z.string().url()]).optional(),
   display_order: z.coerce.number().int().default(0),
 });
