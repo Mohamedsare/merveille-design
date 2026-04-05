@@ -11,7 +11,7 @@ export function PublicFooter({ settings }: { settings: SiteSettings }) {
         <div>
           <BrandLogo variant="footer" alt={settings.site_name} />
           <p className="mt-4 max-w-sm text-sm text-[var(--muted-foreground)]">
-            Sacs à main artisanaux, box cadeaux et formations — Ouagadougou, Burkina Faso.
+            Sacs à main artisanaux, box cadeaux et formations — à Bobo-Dioulasso, Burkina Faso.
           </p>
         </div>
         <div className="flex flex-wrap gap-6 text-sm">

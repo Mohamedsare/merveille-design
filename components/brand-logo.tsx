@@ -11,7 +11,7 @@ type BrandLogoProps = {
 
 const variantClass: Record<NonNullable<BrandLogoProps["variant"]>, string> = {
   header: "h-9 w-[150px] sm:h-10 sm:w-[170px]",
-  footer: "h-10 w-[160px] sm:h-11 sm:w-[180px]",
+  footer: "h-9 w-[150px] sm:h-10 sm:w-[170px]",
   admin: "h-8 w-[130px]",
   login: "mx-auto h-14 w-[220px] sm:h-16 sm:w-[260px]",
 };
@@ -22,21 +22,21 @@ export function BrandLogo({
   priority = false,
   alt = "Merveill design",
 }: BrandLogoProps) {
-  const isHeader = variant === "header";
+  const zoomLikeHeader = variant === "header" || variant === "footer";
 
   return (
     <span
       className={cn(
         "relative inline-block shrink-0",
         variantClass[variant],
-        isHeader && "overflow-hidden",
+        zoomLikeHeader && "overflow-hidden",
         className
       )}
     >
       <span
         className={cn(
           "relative block h-full w-full",
-          isHeader && "origin-left scale-[1.62] sm:scale-[1.55]"
+          zoomLikeHeader && "origin-left scale-[1.62] sm:scale-[1.55]"
         )}
       >
         <Image

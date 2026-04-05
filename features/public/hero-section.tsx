@@ -24,7 +24,7 @@ export function HeroSection({ settings }: { settings: SiteSettings }) {
           >
             <Badge variant="gold" className="mb-4 gap-1">
               <Sparkles className="h-3 w-3" />
-              Artisanat & sur mesure — Burkina Faso
+              Artisanat & sur mesure à Bobo-Dioulasso — Burkina Faso
             </Badge>
             <h1 className="font-display text-4xl font-semibold leading-tight tracking-tight text-[var(--foreground)] sm:text-5xl lg:text-[3.25rem]">
               {settings.hero_title ?? "Sacs & box d’exception, pensés pour vous"}

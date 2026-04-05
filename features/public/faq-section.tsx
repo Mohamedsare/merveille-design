@@ -12,14 +12,14 @@ const faqs = [
   },
   {
     q: "Quel est le délai de fabrication ?",
-    a: "Selon la complexité, comptez en général 2 à 4 semaines. Nous confirmons un délai précis à la validation du devis.",
+    a: "Selon la complexité, comptez en général 2 jours  à 4 jours et 1 semaine maximum. Nous confirmons un délai précis à la validation du devis.",
   },
   {
     q: "Puis-je personnaliser à partir d’un modèle existant ?",
     a: "Oui, c’est même recommandé : nos modèles servent de base pour couleurs, tailles et finitions.",
   },
   {
-    q: "Livrez-vous hors Ouagadougou ?",
+    q: "Livrez-vous hors Bobo-Dioulasso ?",
     a: "Oui, au Burkina Faso et à l’international selon les options d’expédition disponibles.",
   },
   {
@@ -36,12 +36,12 @@ export function FAQSection() {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="scroll-mt-20 bg-[var(--card)] px-4 py-16 sm:px-6 md:py-24">
+    <section id="faq" className="scroll-mt-20 bg-(--card) px-4 py-16 sm:px-6 md:py-24">
       <div className="mx-auto max-w-3xl">
         <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
           Questions fréquentes
         </h2>
-        <p className="mt-3 text-[var(--muted-foreground)]">
+        <p className="mt-3 text-(--muted-foreground)">
           Les réponses aux objections les plus courantes — pour avancer sereinement.
         </p>
         <ul className="mt-10 space-y-3">
@@ -51,7 +51,7 @@ export function FAQSection() {
               <motion.li
                 key={item.q}
                 initial={false}
-                className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--background)]"
+                className="overflow-hidden rounded-2xl border border-(--border) bg-background"
               >
                 <button
                   type="button"
@@ -68,7 +68,7 @@ export function FAQSection() {
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
-                    className="border-t border-[var(--border)] px-5 py-4 text-sm text-[var(--muted-foreground)]"
+                    className="border-t border-(--border) px-5 py-4 text-sm text-(--muted-foreground)"
                   >
                     {item.a}
                   </motion.div>
