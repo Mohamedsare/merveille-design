@@ -255,10 +255,10 @@ end;
 $$;
 
 create trigger products_updated before update on public.products
-  for each row execute function public.set_updated_at();
+  for each row execute procedure public.set_updated_at();
 create trigger trainings_updated before update on public.trainings
-  for each row execute function public.set_updated_at();
+  for each row execute procedure public.set_updated_at();
 create trigger orders_updated before update on public.orders
-  for each row execute function public.set_updated_at();
+  for each row execute procedure public.set_updated_at();
 create trigger site_settings_updated before update on public.site_settings
-  for each row execute function public.set_updated_at();
+  for each row execute procedure public.set_updated_at();

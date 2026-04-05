@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { BrandLogo } from "@/components/brand-logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { SiteSettings } from "@/types/database";
@@ -27,8 +28,8 @@ export function PublicHeader({ settings }: { settings: SiteSettings }) {
       className="sticky top-0 z-40 border-b border-[var(--border)]/80 bg-[var(--background)]/85 backdrop-blur-md"
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Link href="/" className="font-display text-xl font-semibold tracking-tight text-[var(--primary)]">
-          {settings.site_name}
+        <Link href="/" className="flex items-center" aria-label={settings.site_name}>
+          <BrandLogo variant="header" priority alt={settings.site_name} />
         </Link>
         <nav className="hidden items-center gap-1 md:flex">
           {nav.map((item) => (

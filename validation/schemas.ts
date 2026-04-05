@@ -47,7 +47,10 @@ export const visitorEventSchema = z.object({
 export const productAdminSchema = z.object({
   name: z.string().min(1),
   slug: z.string().min(1).regex(/^[a-z0-9-]+$/),
-  category_id: z.string().uuid().optional().nullable(),
+  category_id: z
+    .union([z.string().uuid(), z.literal(""), z.null()])
+    .optional()
+    .transform((v) => (v === "" || v == null ? null : v)),
   type: z.enum(["bag", "box"]),
   short_description: z.string().optional(),
   description: z.string().optional(),
