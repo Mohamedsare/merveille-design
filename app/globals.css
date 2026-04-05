@@ -1,26 +1,67 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #faf7f2;
+  --foreground: #2c2825;
+  --card: #ffffff;
+  --card-foreground: #2c2825;
+  --muted: #ebe4db;
+  --muted-foreground: #6b635c;
+  --border: #e5ddd4;
+  --primary: #5c4033;
+  --primary-foreground: #fdfcfa;
+  --accent: #c4a574;
+  --accent-foreground: #2c2825;
+  --ring: #c4a574;
+  --input-bg: #fffcfa;
+  --radius: 1rem;
+}
+
+.dark {
+  --background: #1a1816;
+  --foreground: #f5f0ea;
+  --card: #242120;
+  --card-foreground: #f5f0ea;
+  --muted: #3a3532;
+  --muted-foreground: #a89f96;
+  --border: #3a3532;
+  --primary: #d4b896;
+  --primary-foreground: #1a1816;
+  --accent: #c4a574;
+  --accent-foreground: #1a1816;
+  --ring: #c4a574;
+  --input-bg: #2a2624;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-dm-sans);
+  --font-display: var(--font-cormorant);
+  --shadow-soft: 0 4px 24px -4px rgb(44 40 37 / 0.08), 0 8px 32px -8px rgb(44 40 37 / 0.06);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@utility shadow-soft {
+  box-shadow: var(--shadow-soft);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-cormorant), Georgia, serif;
+}
+
+/* Réduction de mouvement */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
