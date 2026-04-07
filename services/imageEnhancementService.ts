@@ -83,7 +83,8 @@ export async function runSharpEnhancementForProductImage(
       .from("product_images")
       .update({
         enhanced_image_url: publicUrl,
-        enhancement_status: "enhanced",
+        // Auto-application: une amélioration réussie devient immédiatement exploitable côté public.
+        enhancement_status: "approved",
         original_image_url: sourceUrl,
       })
       .eq("id", productImageId);

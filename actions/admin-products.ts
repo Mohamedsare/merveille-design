@@ -169,3 +169,35 @@ export async function requestImageEnhancement(productImageId: string) {
   revalidatePath("/admin/dashboard/media");
   return { ok: true as const };
 }
+
+export async function requestAllImageEnhancements() {
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return { ok: false as const, error: "Non configuré" };
+
+  const { data: rows, error } = await supabase
+    .from("product_images")
+    .select("id, image_url, enhancement_status")
+    .neq("enhancement_status", "approved")
+    .order("created_at", { ascending: false });
+
+  if (error) return { ok: false as const, error: error.message };
+  if (!rows?.length) return { ok: true as const, processed: 0, failed: 0 };
+
+  let processed = 0;
+  let failed = 0;
+
+  for (const row of rows) {
+    if (!row.image_url) {
+      failed += 1;
+      continue;
+    }
+    await supabase.from("product_images").update({ enhancement_status: "pending" }).eq("id", row.id);
+    const res = await runSharpEnhancementForProductImage(supabase, row.id, row.image_url);
+    if (res.ok) processed += 1;
+    else failed += 1;
+  }
+
+  revalidatePath("/");
+  revalidatePath("/admin/dashboard/media");
+  return { ok: true as const, processed, failed };
+}
