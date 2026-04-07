@@ -58,7 +58,7 @@ export function AdminAccountForm({
           </div>
           <AdminImageField
             name="avatar_url"
-            folder="settings"
+            folder="site"
             label="Photo de profil"
             defaultUrl={avatarUrl}
           />
