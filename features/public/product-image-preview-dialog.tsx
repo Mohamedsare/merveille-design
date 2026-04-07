@@ -4,7 +4,7 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useTrackEvent } from "@/hooks/use-analytics";
 import { buildProductGalleryUrls } from "@/lib/product-images";
 import type { Product } from "@/types/database";
@@ -34,6 +34,9 @@ export function ProductImagePreviewDialog({ product }: { product: Product }) {
         />
       </DialogTrigger>
       <DialogContent className="w-[calc(100%-1rem)] max-w-3xl overflow-hidden p-0">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Galerie photo - {product.name}</DialogTitle>
+        </DialogHeader>
         <div className="relative aspect-[4/5] w-full bg-black">
           <Image
             src={current}

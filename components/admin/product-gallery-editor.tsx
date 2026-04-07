@@ -1,10 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
-import { addProductImage, deleteProductImage } from "@/actions/admin-products";
+import { addProductImage, deleteProductImage, moveProductImage } from "@/actions/admin-products";
 import { uploadAdminMedia } from "@/actions/admin-media";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -62,6 +63,17 @@ export function ProductGalleryEditor({
     } else toast.error(res.error);
   };
 
+  const onMove = async (imageId: string, direction: "up" | "down") => {
+    setPendingId(imageId);
+    const res = await moveProductImage(productId, imageId, direction);
+    setPendingId(null);
+    if (res.ok) {
+      refresh();
+    } else {
+      toast.error(res.error);
+    }
+  };
+
   return (
     <div className="space-y-3 rounded-xl border border-[var(--border)] bg-[var(--muted)]/20 p-4">
       <div>
@@ -88,7 +100,7 @@ export function ProductGalleryEditor({
       </Button>
       {sorted.length ? (
         <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {sorted.map((img) => (
+          {sorted.map((img, index) => (
             <li
               key={img.id}
               className="relative aspect-square overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--card)]"
@@ -101,16 +113,45 @@ export function ProductGalleryEditor({
                 sizes="120px"
                 unoptimized
               />
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="absolute bottom-1 right-1 h-7 bg-[var(--card)]/90 text-xs"
-                disabled={pendingId === img.id}
-                onClick={() => void onDelete(img.id)}
-              >
-                Retirer
-              </Button>
+              {index === 0 ? (
+                <span className="absolute left-1 top-1 rounded-md bg-[var(--primary)] px-2 py-1 text-[10px] font-medium text-[var(--primary-foreground)] shadow-sm">
+                  Photo principale
+                </span>
+              ) : null}
+              <div className="absolute bottom-1 right-1 flex gap-1">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-7 w-7 bg-[var(--card)]/90 p-0"
+                  aria-label="Monter la photo"
+                  disabled={pendingId === img.id || index === 0}
+                  onClick={() => void onMove(img.id, "up")}
+                >
+                  <ArrowUp className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-7 w-7 bg-[var(--card)]/90 p-0"
+                  aria-label="Descendre la photo"
+                  disabled={pendingId === img.id || index === sorted.length - 1}
+                  onClick={() => void onMove(img.id, "down")}
+                >
+                  <ArrowDown className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-7 bg-[var(--card)]/90 text-xs"
+                  disabled={pendingId === img.id}
+                  onClick={() => void onDelete(img.id)}
+                >
+                  Retirer
+                </Button>
+              </div>
             </li>
           ))}
         </ul>

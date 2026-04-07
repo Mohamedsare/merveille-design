@@ -8,7 +8,10 @@ const STORY_FALLBACK =
   "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=1400&q=80";
 
 export function BrandStorySection({ settings }: { settings: SiteSettings }) {
-  const imageSrc = settings.how_it_works_image_url?.trim() || STORY_FALLBACK;
+  const themeConfig = (settings.theme_config ?? {}) as Record<string, unknown>;
+  const brandStoryImage =
+    typeof themeConfig.brand_story_image_url === "string" ? themeConfig.brand_story_image_url : "";
+  const imageSrc = brandStoryImage.trim() || settings.how_it_works_image_url?.trim() || STORY_FALLBACK;
 
   return (
     <section id="histoire" className="scroll-mt-20 px-4 py-16 sm:px-6 md:py-24">

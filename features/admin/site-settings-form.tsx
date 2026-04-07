@@ -12,6 +12,9 @@ import type { SiteSettings } from "@/types/database";
 
 export function SiteSettingsForm({ row }: { row: SiteSettings }) {
   const [pending, startTransition] = useTransition();
+  const themeConfig = (row.theme_config ?? {}) as Record<string, unknown>;
+  const brandStoryImageUrl =
+    typeof themeConfig.brand_story_image_url === "string" ? themeConfig.brand_story_image_url : "";
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -34,6 +37,7 @@ export function SiteSettingsForm({ row }: { row: SiteSettings }) {
         seo_title: fd.get("seo_title"),
         seo_description: fd.get("seo_description"),
         seo_keywords: fd.get("seo_keywords"),
+        brand_story_image_url: fd.get("brand_story_image_url") || "",
       });
       if (res.ok) toast.success("Paramètres enregistrés");
       else toast.error("error" in res ? res.error : "Erreur");
@@ -91,6 +95,12 @@ export function SiteSettingsForm({ row }: { row: SiteSettings }) {
           folder="site"
           label="Comment commander — illustration (côté gauche sur grand écran)"
           defaultUrl={row.how_it_works_image_url}
+        />
+        <AdminImageField
+          name="brand_story_image_url"
+          folder="site"
+          label="Histoire de la marque — image de section"
+          defaultUrl={brandStoryImageUrl}
         />
         <AdminImageField
           name="box_section_image_url"

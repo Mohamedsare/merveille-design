@@ -23,6 +23,7 @@ const settingsSchema = z.object({
   seo_title: z.string().optional(),
   seo_description: z.string().optional(),
   seo_keywords: z.string().optional(),
+  brand_story_image_url: optImg,
 });
 
 export async function updateSiteSettings(id: string, raw: unknown) {
@@ -31,6 +32,17 @@ export async function updateSiteSettings(id: string, raw: unknown) {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return { ok: false as const, error: "Non configuré" };
   const v = parsed.data;
+  const { data: current } = await supabase.from("site_settings").select("theme_config").eq("id", id).maybeSingle();
+  const currentTheme = ((current?.theme_config as Record<string, unknown> | null) ?? {}) as Record<
+    string,
+    unknown
+  >;
+  const nextTheme: Record<string, unknown> = { ...currentTheme };
+  if (v.brand_story_image_url && v.brand_story_image_url.trim()) {
+    nextTheme.brand_story_image_url = v.brand_story_image_url.trim();
+  } else {
+    delete nextTheme.brand_story_image_url;
+  }
   const { error } = await supabase
     .from("site_settings")
     .update({
@@ -50,6 +62,7 @@ export async function updateSiteSettings(id: string, raw: unknown) {
       seo_title: v.seo_title ?? null,
       seo_description: v.seo_description ?? null,
       seo_keywords: v.seo_keywords ?? null,
+      theme_config: nextTheme,
     })
     .eq("id", id);
   if (error) return { ok: false as const, error: error.message };

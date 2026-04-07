@@ -95,6 +95,50 @@ export async function deleteProductImage(
   return { ok: true as const };
 }
 
+export async function moveProductImage(
+  productId: string,
+  imageId: string,
+  direction: "up" | "down"
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return { ok: false as const, error: "Non configuré" };
+
+  const { data: rows, error } = await supabase
+    .from("product_images")
+    .select("id, sort_order")
+    .eq("product_id", productId)
+    .order("sort_order", { ascending: true });
+
+  if (error) return { ok: false as const, error: error.message };
+  if (!rows?.length) return { ok: false as const, error: "Galerie vide" };
+
+  const currentIndex = rows.findIndex((r) => r.id === imageId);
+  if (currentIndex < 0) return { ok: false as const, error: "Image introuvable" };
+
+  const targetIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
+  if (targetIndex < 0 || targetIndex >= rows.length) return { ok: true as const };
+
+  const current = rows[currentIndex];
+  const target = rows[targetIndex];
+
+  const { error: firstErr } = await supabase
+    .from("product_images")
+    .update({ sort_order: target.sort_order })
+    .eq("id", current.id);
+  if (firstErr) return { ok: false as const, error: firstErr.message };
+
+  const { error: secondErr } = await supabase
+    .from("product_images")
+    .update({ sort_order: current.sort_order })
+    .eq("id", target.id);
+  if (secondErr) return { ok: false as const, error: secondErr.message };
+
+  revalidatePath("/");
+  revalidatePath("/admin/dashboard/products");
+  revalidatePath("/admin/dashboard/media");
+  return { ok: true as const };
+}
+
 export async function deleteProduct(id: string) {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return { ok: false as const, error: "Non configuré" };
