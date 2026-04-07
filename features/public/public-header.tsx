@@ -11,6 +11,7 @@ import type { SiteSettings } from "@/types/database";
 
 const nav = [
   { href: "#modeles", label: "Modèles" },
+  { href: "#histoire", label: "Histoire" },
   { href: "#commander", label: "Commander" },
   { href: "#box", label: "Box cadeaux" },
   { href: "#formations", label: "Formations" },

@@ -57,6 +57,9 @@ export function ContactSection({ settings }: { settings: SiteSettings }) {
               Une question, une idée floue ou un cadeau urgent : écrivez-nous. Réponse personnalisée sous 24h
               en semaine.
             </p>
+            <p className="mt-3 text-sm opacity-90">
+              Devis clair avant validation, personnalisation possible et livraison au Burkina Faso.
+            </p>
             {settings.contact_email ? (
               <p className="mt-5 text-sm sm:mt-6">
                 <span className="block text-[0.8125rem] opacity-80 sm:inline sm:text-inherit">Email</span>

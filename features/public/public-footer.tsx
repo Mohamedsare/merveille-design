@@ -18,6 +18,12 @@ export function PublicFooter({ settings }: { settings: SiteSettings }) {
           <a href="#modeles" className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
             Modèles
           </a>
+          <a href="#histoire" className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
+            Histoire
+          </a>
+          <a href="#commander" className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
+            Commander
+          </a>
           <a href="#formations" className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
             Formations
           </a>

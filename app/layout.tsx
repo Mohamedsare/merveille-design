@@ -25,9 +25,12 @@ export const metadata: Metadata = {
     template: "%s · Merveill design",
   },
   description:
-    "Sacs à main artisanaux, coffrets cadeaux et formations à Ouagadougou. Commande sur mesure, livraison et accompagnement premium.",
+    "Merveill'S Design cree des sacs africains elegants faits main au Burkina Faso. Commande sur mesure, personnalisation, livraison locale et en Afrique.",
   keywords: [
-    "sac à main Ouagadougou",
+    "sacs africains elegants",
+    "sac fait main Burkina Faso",
+    "sac a main Ouagadougou",
+    "sac artisanal Bobo-Dioulasso",
     "maroquinerie Burkina Faso",
     "box cadeau",
     "formation sac",
@@ -35,7 +38,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "Merveill design",
-    description: "Sacs artisanaux, box cadeaux et formations — sur mesure.",
+    description: "Sacs africains premium faits main, personnalises et livres au Burkina Faso.",
     locale: "fr_BF",
     type: "website",
   },

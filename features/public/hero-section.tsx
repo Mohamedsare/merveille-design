@@ -31,11 +31,11 @@ export function HeroSection({ settings }: { settings: SiteSettings }) {
               Artisanat & sur mesure à Bobo-Dioulasso — Burkina Faso
             </Badge>
             <h1 className="font-display text-4xl font-semibold leading-tight tracking-tight text-[var(--foreground)] sm:text-5xl lg:text-[3.25rem]">
-              {settings.hero_title ?? "Sacs & box d’exception, pensés pour vous"}
+              {settings.hero_title ?? "Sacs africains elegants faits a la main"}
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-[var(--muted-foreground)] sm:text-lg">
               {settings.hero_subtitle ??
-                "Découvrez nos modèles, personnalisez chaque détail, ou réservez une formation créative."}
+                "Merveill'S Design, l'elegance africaine au quotidien. Pieces premium, personnalisation et livraison au Burkina Faso."}
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Button

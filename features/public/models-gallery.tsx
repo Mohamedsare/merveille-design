@@ -13,6 +13,7 @@ import { buildProductGalleryUrls } from "@/lib/product-images";
 import { cn, formatPriceXOF } from "@/lib/utils";
 import type { Category, Product, SiteSettings } from "@/types/database";
 import { ProductDetailDialog } from "@/features/public/product-detail-dialog";
+import { ProductImagePreviewDialog } from "@/features/public/product-image-preview-dialog";
 import { OrderSheet } from "@/features/public/order-sheet";
 
 type Filter = "all" | "bag" | "box";
@@ -128,6 +129,7 @@ export function ModelsGallery({
                           sizes="(max-width: 1024px) 50vw, 33vw"
                         />
                       ) : null}
+                      <ProductImagePreviewDialog product={p} />
                       {p.is_featured ? (
                         <Badge
                           className="absolute left-1 top-1 max-w-[calc(100%-0.5rem)] truncate px-1 py-0 text-[9px] leading-tight sm:left-3 sm:top-3 sm:max-w-none sm:px-2.5 sm:py-0.5 sm:text-xs"
