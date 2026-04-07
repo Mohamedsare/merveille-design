@@ -33,6 +33,13 @@ type SharpPipeline = {
   normalize: boolean;
 };
 
+type SharpPipelineOverrides = {
+  linear?: number;
+  modulate?: Partial<SharpModulate>;
+  sharpen?: Partial<SharpSharpen>;
+  normalize?: boolean;
+};
+
 /** Paramètres subtils — ne pas dénaturer le produit */
 const SHARP_PIPELINE = {
   linear: 1.02,
@@ -49,8 +56,8 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-function sanitizePipeline(input: Partial<SharpPipeline>): Partial<SharpPipeline> {
-  const out: Partial<SharpPipeline> = {};
+function sanitizePipeline(input: SharpPipelineOverrides): SharpPipelineOverrides {
+  const out: SharpPipelineOverrides = {};
   if (typeof input.linear === "number") out.linear = clamp(input.linear, 0.92, 1.18);
   if (input.modulate) {
     out.modulate = {
@@ -69,7 +76,7 @@ function sanitizePipeline(input: Partial<SharpPipeline>): Partial<SharpPipeline>
   return out;
 }
 
-async function enhanceBufferWithPipeline(input: Buffer, overrides?: Partial<SharpPipeline>): Promise<Buffer> {
+async function enhanceBufferWithPipeline(input: Buffer, overrides?: SharpPipelineOverrides): Promise<Buffer> {
   const merged: SharpPipeline = {
     ...SHARP_PIPELINE,
     ...overrides,
@@ -159,7 +166,7 @@ export async function runSharpEnhancementForProductImage(
 /**
  * Orchestration OpenAI : propose un preset photo e-commerce subtil.
  */
-export async function orchestrateWithOpenAI(_imageUrl: string): Promise<Partial<SharpPipeline> | null> {
+export async function orchestrateWithOpenAI(_imageUrl: string): Promise<SharpPipelineOverrides | null> {
   const key = process.env.OPENAI_API_KEY;
   if (!key) return null;
   try {
