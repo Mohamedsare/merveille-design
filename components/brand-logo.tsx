@@ -12,7 +12,7 @@ type BrandLogoProps = {
 const variantClass: Record<NonNullable<BrandLogoProps["variant"]>, string> = {
   header: "h-9 w-[150px] sm:h-10 sm:w-[170px]",
   footer: "h-9 w-[150px] sm:h-10 sm:w-[170px]",
-  admin: "h-8 w-[130px]",
+  admin: "h-10 w-[170px] sm:h-11 sm:w-[190px]",
   login: "mx-auto h-14 w-[220px] sm:h-16 sm:w-[260px]",
 };
 
@@ -22,7 +22,7 @@ export function BrandLogo({
   priority = false,
   alt = "Merveill design",
 }: BrandLogoProps) {
-  const zoomLikeHeader = variant === "header" || variant === "footer";
+  const zoomLikeHeader = variant === "header" || variant === "footer" || variant === "admin";
 
   return (
     <span

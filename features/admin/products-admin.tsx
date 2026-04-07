@@ -50,6 +50,13 @@ export function ProductsAdmin({
     startTransition(async () => {
       const res = await upsertProduct(edit?.id ?? null, raw);
       if (res.ok) {
+        if (res.warning) {
+          toast.warning(edit ? "Produit mis à jour" : "Produit créé", {
+            description: res.warning,
+          });
+          close();
+          return;
+        }
         const hasCover = typeof raw.cover_image_url === "string" && raw.cover_image_url.trim() !== "";
         if (hasCover) {
           toast.success(edit ? "Produit mis à jour" : "Produit créé", {

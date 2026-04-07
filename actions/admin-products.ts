@@ -6,7 +6,7 @@ import { runSharpEnhancementForProductImage, type EnhancementMode } from "@/serv
 import { productAdminSchema } from "@/validation/schemas";
 
 export type UpsertProductResult =
-  | { ok: true; id: string }
+  | { ok: true; id: string; warning?: string }
   | { ok: false; error: string; fields?: Record<string, unknown> };
 
 /** Assure une entrée galerie pour la couverture, puis lance l'amélioration auto (mode rapide). */
@@ -14,9 +14,9 @@ async function autoEnhanceProductCover(
   supabase: NonNullable<Awaited<ReturnType<typeof createServerSupabaseClient>>>,
   productId: string,
   coverUrl: string | null | undefined
-) {
+): Promise<{ ok: true } | { ok: false; error: string }> {
   const url = coverUrl?.trim();
-  if (!url) return;
+  if (!url) return { ok: true };
 
   const { data: existing } = await supabase
     .from("product_images")
@@ -27,7 +27,7 @@ async function autoEnhanceProductCover(
 
   let imageId: string;
   if (existing?.id) {
-    if (existing.enhancement_status === "approved") return;
+    if (existing.enhancement_status === "approved") return { ok: true };
     imageId = existing.id;
   } else {
     const { data: last } = await supabase
@@ -48,11 +48,17 @@ async function autoEnhanceProductCover(
       })
       .select("id")
       .single();
-    if (insertErr || !inserted?.id) return;
+    if (insertErr || !inserted?.id) {
+      return { ok: false, error: insertErr?.message ?? "Insertion image couverture impossible" };
+    }
     imageId = inserted.id;
   }
 
-  await runSharpEnhancementForProductImage(supabase, imageId, url, "quick");
+  const enhance = await runSharpEnhancementForProductImage(supabase, imageId, url, "quick");
+  if (!enhance.ok) {
+    return { ok: false, error: enhance.error ?? "Échec amélioration couverture" };
+  }
+  return { ok: true };
 }
 
 export async function upsertProduct(id: string | null, raw: unknown): Promise<UpsertProductResult> {
@@ -86,26 +92,34 @@ export async function upsertProduct(id: string | null, raw: unknown): Promise<Up
   if (id) {
     const { error } = await supabase.from("products").update(payload).eq("id", id);
     if (error) return { ok: false as const, error: error.message };
-    await autoEnhanceProductCover(supabase, id, payload.cover_image_url);
+    const coverEnhance = await autoEnhanceProductCover(supabase, id, payload.cover_image_url);
     revalidatePath("/");
     revalidatePath("/admin/dashboard/products");
     revalidatePath("/admin/dashboard/media");
-    return { ok: true as const, id };
+    return {
+      ok: true as const,
+      id,
+      warning: coverEnhance.ok ? undefined : `Produit enregistré, mais ${coverEnhance.error}`,
+    };
   }
 
   const { data, error } = await supabase.from("products").insert(payload).select("id").single();
   if (error) return { ok: false as const, error: error.message };
-  await autoEnhanceProductCover(supabase, data.id, payload.cover_image_url);
+  const coverEnhance = await autoEnhanceProductCover(supabase, data.id, payload.cover_image_url);
   revalidatePath("/");
   revalidatePath("/admin/dashboard/products");
   revalidatePath("/admin/dashboard/media");
-  return { ok: true as const, id: data.id };
+  return {
+    ok: true as const,
+    id: data.id,
+    warning: coverEnhance.ok ? undefined : `Produit enregistré, mais ${coverEnhance.error}`,
+  };
 }
 
 export async function addProductImage(
   productId: string,
   imageUrl: string
-): Promise<{ ok: true } | { ok: false; error: string }> {
+): Promise<{ ok: true; warning?: string } | { ok: false; error: string }> {
   const url = imageUrl.trim();
   if (!url) return { ok: false as const, error: "URL vide" };
   const supabase = await createServerSupabaseClient();
@@ -131,11 +145,14 @@ export async function addProductImage(
     .single();
   if (error || !inserted?.id) return { ok: false as const, error: error?.message ?? "Insertion impossible" };
 
-  await runSharpEnhancementForProductImage(supabase, inserted.id, url, "quick");
+  const enhancement = await runSharpEnhancementForProductImage(supabase, inserted.id, url, "quick");
   revalidatePath("/");
   revalidatePath("/admin/dashboard/products");
   revalidatePath("/admin/dashboard/media");
-  return { ok: true as const };
+  return {
+    ok: true as const,
+    warning: enhancement.ok ? undefined : `Image ajoutée, mais ${enhancement.error ?? "échec amélioration"}`,
+  };
 }
 
 export async function deleteProductImage(

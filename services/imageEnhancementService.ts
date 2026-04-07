@@ -48,6 +48,14 @@ const SHARP_PIPELINE = {
   normalize: true,
 } satisfies SharpPipeline;
 
+/** Garde-fou "fidélité produit" : version encore plus prudente. */
+const CONSERVATIVE_PIPELINE: SharpPipeline = {
+  linear: 1.01,
+  modulate: { brightness: 1.01, saturation: 1.01 },
+  sharpen: { sigma: 0.25, m1: 0.25, m2: 0.05 },
+  normalize: false,
+};
+
 export async function enhanceBufferSubtle(input: Buffer): Promise<Buffer> {
   return enhanceBufferWithPipeline(input, SHARP_PIPELINE);
 }
@@ -58,18 +66,18 @@ function clamp(value: number, min: number, max: number): number {
 
 function sanitizePipeline(input: SharpPipelineOverrides): SharpPipelineOverrides {
   const out: SharpPipelineOverrides = {};
-  if (typeof input.linear === "number") out.linear = clamp(input.linear, 0.92, 1.18);
+  if (typeof input.linear === "number") out.linear = clamp(input.linear, 0.98, 1.06);
   if (input.modulate) {
     out.modulate = {
-      brightness: clamp(input.modulate.brightness ?? SHARP_PIPELINE.modulate.brightness, 0.9, 1.2),
-      saturation: clamp(input.modulate.saturation ?? SHARP_PIPELINE.modulate.saturation, 0.85, 1.25),
+      brightness: clamp(input.modulate.brightness ?? SHARP_PIPELINE.modulate.brightness, 0.98, 1.08),
+      saturation: clamp(input.modulate.saturation ?? SHARP_PIPELINE.modulate.saturation, 0.96, 1.08),
     };
   }
   if (input.sharpen) {
     out.sharpen = {
-      sigma: clamp(input.sharpen.sigma ?? SHARP_PIPELINE.sharpen.sigma, 0.2, 1.2),
-      m1: clamp(input.sharpen.m1 ?? SHARP_PIPELINE.sharpen.m1, 0, 2),
-      m2: clamp(input.sharpen.m2 ?? SHARP_PIPELINE.sharpen.m2, 0, 2),
+      sigma: clamp(input.sharpen.sigma ?? SHARP_PIPELINE.sharpen.sigma, 0.2, 0.55),
+      m1: clamp(input.sharpen.m1 ?? SHARP_PIPELINE.sharpen.m1, 0, 0.7),
+      m2: clamp(input.sharpen.m2 ?? SHARP_PIPELINE.sharpen.m2, 0, 0.35),
     };
   }
   if (typeof input.normalize === "boolean") out.normalize = input.normalize;
@@ -92,8 +100,26 @@ async function enhanceBufferWithPipeline(input: Buffer, overrides?: SharpPipelin
     .linear(merged.linear, 0)
     .modulate(merged.modulate)
     .sharpen(merged.sharpen)
-    .jpeg({ quality: 92, mozjpeg: true })
+    .jpeg({ quality: 93, mozjpeg: true })
+    .withMetadata()
     .toBuffer();
+}
+
+/** Diff moyen RGB (0..255) sur aperçu réduit : permet d'éviter une retouche trop agressive. */
+async function meanRgbDelta(a: Buffer, b: Buffer): Promise<number> {
+  const width = 256;
+  const [ra, rb] = await Promise.all([
+    sharp(a).rotate().resize({ width, fit: "inside" }).removeAlpha().raw().toBuffer({ resolveWithObject: true }),
+    sharp(b).rotate().resize({ width, fit: "inside" }).removeAlpha().raw().toBuffer({ resolveWithObject: true }),
+  ]);
+
+  const len = Math.min(ra.data.length, rb.data.length);
+  if (!len) return 0;
+  let sum = 0;
+  for (let i = 0; i < len; i += 1) {
+    sum += Math.abs(ra.data[i] - rb.data[i]);
+  }
+  return sum / len;
 }
 
 /**
@@ -122,7 +148,17 @@ export async function runSharpEnhancementForProductImage(
 
     const buf = Buffer.from(await res.arrayBuffer());
     const aiOverrides = mode === "ai" ? await orchestrateWithOpenAI(sourceUrl) : null;
-    const enhanced = await enhanceBufferWithPipeline(buf, aiOverrides ? sanitizePipeline(aiOverrides) : undefined);
+    const enhancedCandidate = await enhanceBufferWithPipeline(
+      buf,
+      aiOverrides ? sanitizePipeline(aiOverrides) : undefined
+    );
+    const delta = await meanRgbDelta(buf, enhancedCandidate);
+    const enhanced =
+      delta > 10
+        ? await enhanceBufferWithPipeline(buf, {
+            ...CONSERVATIVE_PIPELINE,
+          })
+        : enhancedCandidate;
     const path = `enhanced/${productImageId}.jpg`;
 
     const { error: upErr } = await supabase.storage.from("media").upload(path, enhanced, {
@@ -183,12 +219,12 @@ export async function orchestrateWithOpenAI(_imageUrl: string): Promise<SharpPip
           {
             role: "system",
             content:
-              "Tu ajustes des presets photo e-commerce sacs. Reponds uniquement en JSON avec: linear, brightness, saturation, sharpen_sigma, sharpen_m1, sharpen_m2, normalize.",
+              "Tu ajustes des presets photo e-commerce pour sacs artisanaux sans alterer la couleur reelle. Reponds UNIQUEMENT en JSON avec: linear, brightness, saturation, sharpen_sigma, sharpen_m1, sharpen_m2, normalize.",
           },
           {
             role: "user",
             content:
-              "Propose un preset subtil mais premium pour un sac artisanal en photo produit. Evite tout rendu artificiel. JSON seulement.",
+              "Propose un preset tres subtil: nettete et lisibilite un peu meilleures, mais sans changer l'apparence du produit. Evite toute retouche agressive. JSON seulement.",
           },
         ],
       }),

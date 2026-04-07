@@ -47,10 +47,14 @@ export function ProductGalleryEditor({
     const add = await addProductImage(productId, up.url);
     setUploading(false);
     if (add.ok) {
-      toast.success("Image ajoutée à la galerie", {
-        description:
-          "Optimisation automatique lancée et appliquée. Rechargez la boutique si la miniature ne change pas immédiatement.",
-      });
+      if (add.warning) {
+        toast.warning("Image ajoutée à la galerie", { description: add.warning });
+      } else {
+        toast.success("Image ajoutée à la galerie", {
+          description:
+            "Optimisation automatique appliquée. Rechargez la boutique si la miniature ne change pas immédiatement.",
+        });
+      }
       refresh();
     } else toast.error(add.error);
   };
