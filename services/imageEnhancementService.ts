@@ -15,15 +15,31 @@ export interface ImageEnhancementResult {
 }
 
 export type EnhancementMode = "quick" | "ai";
-type SharpPipeline = typeof SHARP_PIPELINE;
+type SharpModulate = {
+  brightness: number;
+  saturation: number;
+};
+
+type SharpSharpen = {
+  sigma: number;
+  m1: number;
+  m2: number;
+};
+
+type SharpPipeline = {
+  linear: number;
+  modulate: SharpModulate;
+  sharpen: SharpSharpen;
+  normalize: boolean;
+};
 
 /** Paramètres subtils — ne pas dénaturer le produit */
 const SHARP_PIPELINE = {
   linear: 1.02,
-  modulate: { brightness: 1.03, saturation: 1.04 } as const,
-  sharpen: { sigma: 0.35, m1: 0.5, m2: 0.15 } as const,
-  normalize: true as const,
-};
+  modulate: { brightness: 1.03, saturation: 1.04 },
+  sharpen: { sigma: 0.35, m1: 0.5, m2: 0.15 },
+  normalize: true,
+} satisfies SharpPipeline;
 
 export async function enhanceBufferSubtle(input: Buffer): Promise<Buffer> {
   return enhanceBufferWithPipeline(input, SHARP_PIPELINE);
