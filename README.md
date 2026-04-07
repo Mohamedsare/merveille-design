@@ -41,7 +41,7 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Recommandé | Client Supabase |
 | `NEXT_PUBLIC_SITE_URL` | Optionnel | URL canonique (Open Graph). Sinon Vercel injecte `VERCEL_URL` au build. |
 
-Variables optionnelles : `NEXT_PUBLIC_POSTHOG_*`, `NEXT_PUBLIC_WHATSAPP_NUMBER`, `DEEPSEEK_API_KEY`.
+Variables optionnelles : `NEXT_PUBLIC_POSTHOG_*`, `NEXT_PUBLIC_WHATSAPP_NUMBER`, `OPENAI_API_KEY`.
 
 4. Build : `npm run build` (défaut Vercel). Pas de `vercel.json` requis pour une app Next standard.
 

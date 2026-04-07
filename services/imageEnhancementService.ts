@@ -1,12 +1,12 @@
 /**
  * Pipeline d'amélioration d'image — sobre et commercial.
- * Abstraction extensible : ajouter un provider DeepSeek / API vision plus tard.
+ * Abstraction extensible : provider IA optionnel pour ajuster les presets.
  */
 
 import sharp from "sharp";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type EnhancementProviderId = "sharp_subtle" | "deepseek_orchestrated";
+export type EnhancementProviderId = "sharp_subtle" | "openai_orchestrated";
 
 export interface ImageEnhancementResult {
   ok: boolean;
@@ -114,7 +114,7 @@ export async function runSharpEnhancementForProductImage(
     }
 
     const buf = Buffer.from(await res.arrayBuffer());
-    const aiOverrides = mode === "ai" ? await orchestrateWithDeepSeek(sourceUrl) : null;
+    const aiOverrides = mode === "ai" ? await orchestrateWithOpenAI(sourceUrl) : null;
     const enhanced = await enhanceBufferWithPipeline(buf, aiOverrides ? sanitizePipeline(aiOverrides) : undefined);
     const path = `enhanced/${productImageId}.jpg`;
 
@@ -157,22 +157,22 @@ export async function runSharpEnhancementForProductImage(
 }
 
 /**
- * Point d'extension DeepSeek : analyser l'image ou piloter des presets (placeholder).
+ * Orchestration OpenAI : propose un preset photo e-commerce subtil.
  */
-export async function orchestrateWithDeepSeek(_imageUrl: string): Promise<Partial<typeof SHARP_PIPELINE> | null> {
-  const key = process.env.DEEPSEEK_API_KEY;
+export async function orchestrateWithOpenAI(_imageUrl: string): Promise<Partial<SharpPipeline> | null> {
+  const key = process.env.OPENAI_API_KEY;
   if (!key) return null;
   try {
-    const resp = await fetch("https://api.deepseek.com/chat/completions", {
+    const resp = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "deepseek-chat",
+        model: "gpt-4.1-mini",
         temperature: 0.2,
-        messages: [
+        input: [
           {
             role: "system",
             content:
@@ -187,10 +187,8 @@ export async function orchestrateWithDeepSeek(_imageUrl: string): Promise<Partia
       }),
     });
     if (!resp.ok) return null;
-    const data = (await resp.json()) as {
-      choices?: Array<{ message?: { content?: string } }>;
-    };
-    const content = data.choices?.[0]?.message?.content?.trim();
+    const data = (await resp.json()) as { output_text?: string };
+    const content = data.output_text?.trim();
     if (!content) return null;
     const clean = content.replace(/^```json\s*/i, "").replace(/^```/i, "").replace(/```$/, "").trim();
     const parsed = JSON.parse(clean) as Record<string, unknown>;

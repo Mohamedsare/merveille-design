@@ -22,7 +22,7 @@ export function MediaEnhancePanel({ rows }: { rows: Row[] }) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-[var(--muted-foreground)]">
-        Mode rapide via Sharp + mode IA fort (DeepSeek, si cle configuree) pour preset adapte.
+        Mode rapide via Sharp + mode IA fort (OpenAI, si cle configuree) pour preset adapte.
         Creez le bucket Supabase{" "}
         <code className="rounded bg-[var(--muted)] px-1">media</code> avec politiques admin.
         Une fois le traitement réussi, l&apos;image améliorée est appliquée automatiquement sur le site.
