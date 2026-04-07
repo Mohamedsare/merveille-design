@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { logAdminAuditEvent } from "@/lib/admin-audit";
 import { trainingAdminSchema } from "@/validation/schemas";
 
 export async function upsertTraining(id: string | null, raw: unknown) {
@@ -29,9 +30,11 @@ export async function upsertTraining(id: string | null, raw: unknown) {
   if (id) {
     const { error } = await supabase.from("trainings").update(payload).eq("id", id);
     if (error) return { ok: false as const, error: error.message };
+    await logAdminAuditEvent(supabase, "training_update", { training_id: id, title: payload.title });
   } else {
-    const { error } = await supabase.from("trainings").insert(payload);
+    const { data, error } = await supabase.from("trainings").insert(payload).select("id").single();
     if (error) return { ok: false as const, error: error.message };
+    await logAdminAuditEvent(supabase, "training_create", { training_id: data.id, title: payload.title });
   }
   revalidatePath("/");
   revalidatePath("/admin/dashboard/trainings");
@@ -43,6 +46,7 @@ export async function deleteTraining(id: string) {
   if (!supabase) return { ok: false as const, error: "Non configuré" };
   const { error } = await supabase.from("trainings").delete().eq("id", id);
   if (error) return { ok: false as const, error: error.message };
+  await logAdminAuditEvent(supabase, "training_delete", { training_id: id });
   revalidatePath("/");
   revalidatePath("/admin/dashboard/trainings");
   return { ok: true as const };

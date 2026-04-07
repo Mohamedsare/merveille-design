@@ -1,6 +1,7 @@
 "use server";
 
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { logAdminAuditEvent } from "@/lib/admin-audit";
 import { safeImageExtension, validateImageFile } from "@/lib/media-upload";
 
 const FOLDERS = ["products", "trainings", "site", "hero"] as const;
@@ -41,5 +42,6 @@ export async function uploadAdminMedia(
   if (error) return { ok: false, error: error.message };
 
   const { data: pub } = supabase.storage.from("media").getPublicUrl(path);
+  await logAdminAuditEvent(supabase, "media_upload", { folder, path });
   return { ok: true, url: pub.publicUrl };
 }

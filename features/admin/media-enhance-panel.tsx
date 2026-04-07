@@ -22,7 +22,7 @@ export function MediaEnhancePanel({ rows }: { rows: Row[] }) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-[var(--muted-foreground)]">
-        Mode rapide via Sharp + mode IA fort (OpenAI, si cle configuree) pour preset adapte.
+        Deux profils : Safe (fidelite produit) et Premium (OpenAI + rendu plus net).
         Creez le bucket Supabase{" "}
         <code className="rounded bg-[var(--muted)] px-1">media</code> avec politiques admin.
         Une fois le traitement réussi, l&apos;image améliorée est appliquée automatiquement sur le site.
@@ -74,13 +74,13 @@ export function MediaEnhancePanel({ rows }: { rows: Row[] }) {
                 disabled={pending}
                 onClick={() => {
                   startTransition(async () => {
-                    const res = await requestImageEnhancement(r.id, "quick");
-                    if (res.ok) toast.success("Traitement rapide lance");
+                    const res = await requestImageEnhancement(r.id, "safe");
+                    if (res.ok) toast.success("Traitement Safe lance");
                     else toast.error("error" in res ? res.error : "Erreur");
                   });
                 }}
               >
-                Ameliorer (rapide)
+                Profil Safe
               </Button>
               <Button
                 type="button"
@@ -90,13 +90,13 @@ export function MediaEnhancePanel({ rows }: { rows: Row[] }) {
                 disabled={pending}
                 onClick={() => {
                   startTransition(async () => {
-                    const res = await requestImageEnhancement(r.id, "ai");
-                    if (res.ok) toast.success("Traitement IA lance");
+                    const res = await requestImageEnhancement(r.id, "premium");
+                    if (res.ok) toast.success("Traitement Premium lance");
                     else toast.error("error" in res ? res.error : "Erreur");
                   });
                 }}
               >
-                Ameliorer fort (IA)
+                Profil Premium
               </Button>
             </div>
           </li>

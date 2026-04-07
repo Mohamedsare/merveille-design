@@ -14,6 +14,12 @@ export default async function AdminAnalyticsPage() {
   const supabase = await createServerSupabaseClient();
   let events: { event_name: string; c: number }[] = [];
   let recent: { event_name: string; page_path: string | null; created_at: string }[] = [];
+  let adminAudit: {
+    event_name: string;
+    page_path: string | null;
+    created_at: string;
+    metadata: Record<string, unknown> | null;
+  }[] = [];
 
   if (supabase) {
     const { data: raw } = await supabase.from("visitor_events").select("event_name").limit(5000);
@@ -31,6 +37,14 @@ export default async function AdminAnalyticsPage() {
       .order("created_at", { ascending: false })
       .limit(30);
     recent = (rec as typeof recent) ?? [];
+
+    const { data: adminRec } = await supabase
+      .from("visitor_events")
+      .select("event_name, page_path, created_at, metadata")
+      .ilike("event_name", "admin_%")
+      .order("created_at", { ascending: false })
+      .limit(40);
+    adminAudit = (adminRec as typeof adminAudit) ?? [];
   }
 
   const posthogHost = getPosthogHost();
@@ -94,6 +108,37 @@ export default async function AdminAnalyticsPage() {
                 </span>
               </li>
             ))}
+          </ul>
+        </CardContent>
+      </Card>
+
+      <Card className="border-[var(--border)]">
+        <CardHeader>
+          <CardTitle className="font-display text-lg">Journal d&apos;audit admin</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-2 text-sm">
+            {adminAudit.length === 0 ? (
+              <li className="py-4 text-[var(--muted-foreground)]">Aucun événement d&apos;audit pour le moment.</li>
+            ) : (
+              adminAudit.map((r, i) => {
+                const who =
+                  (typeof r.metadata?.admin_email === "string" && r.metadata.admin_email) ||
+                  (typeof r.metadata?.admin_id === "string" && r.metadata.admin_id) ||
+                  "admin";
+                return (
+                  <li key={`${r.event_name}-${r.created_at}-${i}`} className="border-b border-[var(--border)]/60 py-2">
+                    <p className="font-mono text-xs">{r.event_name}</p>
+                    <p className="text-xs text-[var(--muted-foreground)]">
+                      {who} · {r.page_path ?? "/admin"}
+                    </p>
+                    <p className="text-xs text-[var(--muted-foreground)]">
+                      {new Date(r.created_at).toLocaleString("fr-FR")}
+                    </p>
+                  </li>
+                );
+              })
+            )}
           </ul>
         </CardContent>
       </Card>

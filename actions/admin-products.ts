@@ -4,12 +4,13 @@ import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { runSharpEnhancementForProductImage, type EnhancementMode } from "@/services/imageEnhancementService";
 import { productAdminSchema } from "@/validation/schemas";
+import { logAdminAuditEvent } from "@/lib/admin-audit";
 
 export type UpsertProductResult =
   | { ok: true; id: string; warning?: string }
   | { ok: false; error: string; fields?: Record<string, unknown> };
 
-/** Assure une entrée galerie pour la couverture, puis lance l'amélioration auto (mode rapide). */
+/** Assure une entrée galerie pour la couverture, puis lance l'amélioration auto (mode safe). */
 async function autoEnhanceProductCover(
   supabase: NonNullable<Awaited<ReturnType<typeof createServerSupabaseClient>>>,
   productId: string,
@@ -54,7 +55,7 @@ async function autoEnhanceProductCover(
     imageId = inserted.id;
   }
 
-  const enhance = await runSharpEnhancementForProductImage(supabase, imageId, url, "quick");
+  const enhance = await runSharpEnhancementForProductImage(supabase, imageId, url, "safe");
   if (!enhance.ok) {
     return { ok: false, error: enhance.error ?? "Échec amélioration couverture" };
   }
@@ -93,6 +94,7 @@ export async function upsertProduct(id: string | null, raw: unknown): Promise<Up
     const { error } = await supabase.from("products").update(payload).eq("id", id);
     if (error) return { ok: false as const, error: error.message };
     const coverEnhance = await autoEnhanceProductCover(supabase, id, payload.cover_image_url);
+    await logAdminAuditEvent(supabase, "product_update", { product_id: id, name: payload.name });
     revalidatePath("/");
     revalidatePath("/admin/dashboard/products");
     revalidatePath("/admin/dashboard/media");
@@ -106,6 +108,7 @@ export async function upsertProduct(id: string | null, raw: unknown): Promise<Up
   const { data, error } = await supabase.from("products").insert(payload).select("id").single();
   if (error) return { ok: false as const, error: error.message };
   const coverEnhance = await autoEnhanceProductCover(supabase, data.id, payload.cover_image_url);
+  await logAdminAuditEvent(supabase, "product_create", { product_id: data.id, name: payload.name });
   revalidatePath("/");
   revalidatePath("/admin/dashboard/products");
   revalidatePath("/admin/dashboard/media");
@@ -145,7 +148,11 @@ export async function addProductImage(
     .single();
   if (error || !inserted?.id) return { ok: false as const, error: error?.message ?? "Insertion impossible" };
 
-  const enhancement = await runSharpEnhancementForProductImage(supabase, inserted.id, url, "quick");
+  const enhancement = await runSharpEnhancementForProductImage(supabase, inserted.id, url, "safe");
+  await logAdminAuditEvent(supabase, "product_image_add", {
+    product_id: productId,
+    product_image_id: inserted.id,
+  });
   revalidatePath("/");
   revalidatePath("/admin/dashboard/products");
   revalidatePath("/admin/dashboard/media");
@@ -162,6 +169,7 @@ export async function deleteProductImage(
   if (!supabase) return { ok: false as const, error: "Non configuré" };
   const { error } = await supabase.from("product_images").delete().eq("id", imageId);
   if (error) return { ok: false as const, error: error.message };
+  await logAdminAuditEvent(supabase, "product_image_delete", { product_image_id: imageId });
   revalidatePath("/");
   revalidatePath("/admin/dashboard/products");
   revalidatePath("/admin/dashboard/media");
@@ -205,6 +213,11 @@ export async function moveProductImage(
     .update({ sort_order: current.sort_order })
     .eq("id", target.id);
   if (secondErr) return { ok: false as const, error: secondErr.message };
+  await logAdminAuditEvent(supabase, "product_image_reorder", {
+    product_id: productId,
+    product_image_id: imageId,
+    direction,
+  });
 
   revalidatePath("/");
   revalidatePath("/admin/dashboard/products");
@@ -217,12 +230,13 @@ export async function deleteProduct(id: string) {
   if (!supabase) return { ok: false as const, error: "Non configuré" };
   const { error } = await supabase.from("products").delete().eq("id", id);
   if (error) return { ok: false as const, error: error.message };
+  await logAdminAuditEvent(supabase, "product_delete", { product_id: id });
   revalidatePath("/");
   revalidatePath("/admin/dashboard/products");
   return { ok: true as const };
 }
 
-export async function requestImageEnhancement(productImageId: string, mode: EnhancementMode = "quick") {
+export async function requestImageEnhancement(productImageId: string, mode: EnhancementMode = "safe") {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return { ok: false as const, error: "Non configuré" };
   const { data: row } = await supabase
@@ -238,6 +252,10 @@ export async function requestImageEnhancement(productImageId: string, mode: Enha
     .eq("id", productImageId);
 
   const enhancementResult = await runSharpEnhancementForProductImage(supabase, productImageId, row.image_url, mode);
+  await logAdminAuditEvent(supabase, "product_image_enhance", {
+    product_image_id: productImageId,
+    mode,
+  });
   if (!enhancementResult.ok) {
     return { ok: false as const, error: enhancementResult.error };
   }
@@ -272,6 +290,7 @@ export async function requestAllImageEnhancements() {
     if (res.ok) processed += 1;
     else failed += 1;
   }
+  await logAdminAuditEvent(supabase, "product_image_enhance_batch", { processed, failed });
 
   revalidatePath("/");
   revalidatePath("/admin/dashboard/media");

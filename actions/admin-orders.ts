@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { logAdminAuditEvent } from "@/lib/admin-audit";
 
 const updateSchema = z.object({
   id: z.string().uuid(),
@@ -36,6 +37,11 @@ export async function updateOrderStatus(raw: unknown) {
       created_by: user.id,
     });
   }
+  await logAdminAuditEvent(supabase, "order_status_update", {
+    order_id: id,
+    from_status: prev?.status ?? null,
+    to_status: status,
+  });
 
   revalidatePath("/admin/dashboard/orders");
   return { ok: true as const };
@@ -50,6 +56,7 @@ export async function exportOrdersCsv(): Promise<{ csv: string } | { error: stri
     .order("created_at", { ascending: false })
     .limit(5000);
   if (error) return { error: error.message };
+  await logAdminAuditEvent(supabase, "orders_export_csv", { rows: (data ?? []).length });
   const headers = [
     "id",
     "customer_name",

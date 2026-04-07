@@ -3,6 +3,11 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import {
+  checkAdminLoginRateLimit,
+  registerAdminLoginFailure,
+  registerAdminLoginSuccess,
+} from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,9 +36,15 @@ export function AdminLoginForm() {
     const fd = new FormData(e.currentTarget);
     const email = String(fd.get("email") ?? "");
     const password = String(fd.get("password") ?? "");
+    const gate = await checkAdminLoginRateLimit(email);
+    if (!gate.ok) {
+      toast.error(`${gate.message} (${gate.retryAfterSeconds}s)`);
+      return;
+    }
     setPending(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
+      await registerAdminLoginFailure(email, "invalid_credentials");
       toast.error(error.message);
       setPending(false);
       return;
@@ -48,10 +59,12 @@ export function AdminLoginForm() {
     const { data: admin } = await supabase.from("admin_users").select("id").eq("id", uid).maybeSingle();
     if (!admin) {
       await supabase.auth.signOut();
+      await registerAdminLoginFailure(email, "not_admin");
       toast.error("Accès réservé aux administrateurs");
       setPending(false);
       return;
     }
+    await registerAdminLoginSuccess(email);
     const next = params.get("next") ?? "/admin/dashboard";
     router.replace(next);
     router.refresh();

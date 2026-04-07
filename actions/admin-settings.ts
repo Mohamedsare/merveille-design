@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { logAdminAuditEvent } from "@/lib/admin-audit";
 
 const optImg = z.union([z.literal(""), z.string().url()]).optional();
 
@@ -66,6 +67,10 @@ export async function updateSiteSettings(id: string, raw: unknown) {
     })
     .eq("id", id);
   if (error) return { ok: false as const, error: error.message };
+  await logAdminAuditEvent(supabase, "settings_update", {
+    site_settings_id: id,
+    site_name: v.site_name,
+  });
   revalidatePath("/");
   revalidatePath("/admin/dashboard/settings");
   return { ok: true as const };
