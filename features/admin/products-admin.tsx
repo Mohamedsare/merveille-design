@@ -50,11 +50,20 @@ export function ProductsAdmin({
     startTransition(async () => {
       const res = await upsertProduct(edit?.id ?? null, raw);
       if (res.ok) {
-        toast.success(
-          edit
-            ? "Produit mis à jour"
-            : "Produit créé. Ouvrez « Modifier » pour ajouter d’autres photos à la galerie."
-        );
+        const hasCover = typeof raw.cover_image_url === "string" && raw.cover_image_url.trim() !== "";
+        if (hasCover) {
+          toast.success(edit ? "Produit mis à jour" : "Produit créé", {
+            description:
+              "Optimisation automatique de l'image de couverture appliquée (mode rapide). Rechargez la boutique si la vignette tarde à se rafraîchir.",
+          });
+        } else if (!edit) {
+          toast.success("Produit créé", {
+            description:
+              "Ajoutez une image de couverture ou des photos de galerie : l'amélioration se fera automatiquement à l'ajout.",
+          });
+        } else {
+          toast.success("Produit mis à jour");
+        }
         close();
       } else toast.error("error" in res ? res.error : "Erreur");
     });

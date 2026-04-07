@@ -47,7 +47,10 @@ export function ProductGalleryEditor({
     const add = await addProductImage(productId, up.url);
     setUploading(false);
     if (add.ok) {
-      toast.success("Image ajoutée à la galerie");
+      toast.success("Image ajoutée à la galerie", {
+        description:
+          "Optimisation automatique lancée et appliquée. Rechargez la boutique si la miniature ne change pas immédiatement.",
+      });
       refresh();
     } else toast.error(add.error);
   };

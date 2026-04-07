@@ -9,6 +9,52 @@ export type UpsertProductResult =
   | { ok: true; id: string }
   | { ok: false; error: string; fields?: Record<string, unknown> };
 
+/** Assure une entrée galerie pour la couverture, puis lance l'amélioration auto (mode rapide). */
+async function autoEnhanceProductCover(
+  supabase: NonNullable<Awaited<ReturnType<typeof createServerSupabaseClient>>>,
+  productId: string,
+  coverUrl: string | null | undefined
+) {
+  const url = coverUrl?.trim();
+  if (!url) return;
+
+  const { data: existing } = await supabase
+    .from("product_images")
+    .select("id, enhancement_status")
+    .eq("product_id", productId)
+    .eq("image_url", url)
+    .maybeSingle();
+
+  let imageId: string;
+  if (existing?.id) {
+    if (existing.enhancement_status === "approved") return;
+    imageId = existing.id;
+  } else {
+    const { data: last } = await supabase
+      .from("product_images")
+      .select("sort_order")
+      .eq("product_id", productId)
+      .order("sort_order", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const nextOrder = (last?.sort_order ?? -1) + 1;
+    const { data: inserted, error: insertErr } = await supabase
+      .from("product_images")
+      .insert({
+        product_id: productId,
+        image_url: url,
+        sort_order: nextOrder,
+      })
+      .select("id")
+      .single();
+    if (insertErr || !inserted?.id) return;
+    imageId = inserted.id;
+  }
+
+  await runSharpEnhancementForProductImage(supabase, imageId, url, "quick");
+}
+
 export async function upsertProduct(id: string | null, raw: unknown): Promise<UpsertProductResult> {
   const parsed = productAdminSchema.safeParse(raw);
   if (!parsed.success) {
@@ -40,15 +86,19 @@ export async function upsertProduct(id: string | null, raw: unknown): Promise<Up
   if (id) {
     const { error } = await supabase.from("products").update(payload).eq("id", id);
     if (error) return { ok: false as const, error: error.message };
+    await autoEnhanceProductCover(supabase, id, payload.cover_image_url);
     revalidatePath("/");
     revalidatePath("/admin/dashboard/products");
+    revalidatePath("/admin/dashboard/media");
     return { ok: true as const, id };
   }
 
   const { data, error } = await supabase.from("products").insert(payload).select("id").single();
   if (error) return { ok: false as const, error: error.message };
+  await autoEnhanceProductCover(supabase, data.id, payload.cover_image_url);
   revalidatePath("/");
   revalidatePath("/admin/dashboard/products");
+  revalidatePath("/admin/dashboard/media");
   return { ok: true as const, id: data.id };
 }
 
@@ -70,12 +120,18 @@ export async function addProductImage(
     .maybeSingle();
 
   const nextOrder = (last?.sort_order ?? -1) + 1;
-  const { error } = await supabase.from("product_images").insert({
-    product_id: productId,
-    image_url: url,
-    sort_order: nextOrder,
-  });
-  if (error) return { ok: false as const, error: error.message };
+  const { data: inserted, error } = await supabase
+    .from("product_images")
+    .insert({
+      product_id: productId,
+      image_url: url,
+      sort_order: nextOrder,
+    })
+    .select("id")
+    .single();
+  if (error || !inserted?.id) return { ok: false as const, error: error?.message ?? "Insertion impossible" };
+
+  await runSharpEnhancementForProductImage(supabase, inserted.id, url, "quick");
   revalidatePath("/");
   revalidatePath("/admin/dashboard/products");
   revalidatePath("/admin/dashboard/media");
@@ -164,7 +220,10 @@ export async function requestImageEnhancement(productImageId: string, mode: Enha
     .update({ enhancement_status: "pending" })
     .eq("id", productImageId);
 
-  await runSharpEnhancementForProductImage(supabase, productImageId, row.image_url, mode);
+  const enhancementResult = await runSharpEnhancementForProductImage(supabase, productImageId, row.image_url, mode);
+  if (!enhancementResult.ok) {
+    return { ok: false as const, error: enhancementResult.error };
+  }
 
   revalidatePath("/admin/dashboard/media");
   return { ok: true as const };
