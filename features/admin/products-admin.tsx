@@ -1,6 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { ProductGalleryEditor } from "@/components/admin/product-gallery-editor";
 import { deleteProduct, upsertProduct } from "@/actions/admin-products";
@@ -10,18 +14,68 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { formatPriceXOF } from "@/lib/utils";
 import type { Category, Product } from "@/types/database";
 
 export function ProductsAdmin({
   products,
   categories,
+  q,
+  type,
+  published,
+  page,
+  totalPages,
+  prevHref,
+  nextHref,
 }: {
   products: Product[];
   categories: Category[];
+  q: string;
+  type: string;
+  published: string;
+  page: number;
+  totalPages: number;
+  prevHref: string;
+  nextHref: string;
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [edit, setEdit] = useState<Product | null>(null);
   const [pending, startTransition] = useTransition();
+  const [query, setQuery] = useState(q);
+  const [typeFilter, setTypeFilter] = useState(type);
+  const [publishedFilter, setPublishedFilter] = useState(published);
+
+  useEffect(() => {
+    setQuery(q);
+  }, [q]);
+  useEffect(() => {
+    setTypeFilter(type);
+  }, [type]);
+  useEffect(() => {
+    setPublishedFilter(published);
+  }, [published]);
+
+  function applyFilters(next: { q?: string; type?: string; published?: string }) {
+    const params = new URLSearchParams();
+    const nq = (next.q ?? query).trim();
+    const nt = next.type ?? typeFilter;
+    const np = next.published ?? publishedFilter;
+    if (nq) params.set("q", nq);
+    if (nt && nt !== "all") params.set("type", nt);
+    if (np && np !== "all") params.set("published", np);
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname);
+  }
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      applyFilters({ q: query });
+    }, 350);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
 
   function close() {
     setOpen(false);
@@ -78,15 +132,69 @@ export function ProductsAdmin({
 
   return (
     <div className="space-y-4">
+      <div className="flex flex-col gap-3 rounded-xl border border-[var(--border)] bg-[var(--card)] p-3">
+        <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_170px_170px_auto]">
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Rechercher nom ou slug..."
+            className="h-10"
+          />
+          <select
+            value={typeFilter}
+            onChange={(e) => {
+              const v = e.target.value;
+              setTypeFilter(v);
+              applyFilters({ type: v });
+            }}
+            className="h-10 rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-3 text-sm"
+          >
+            <option value="all">Tous les types</option>
+            <option value="bag">Sacs</option>
+            <option value="box">Box</option>
+          </select>
+          <select
+            value={publishedFilter}
+            onChange={(e) => {
+              const v = e.target.value;
+              setPublishedFilter(v);
+              applyFilters({ published: v });
+            }}
+            className="h-10 rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-3 text-sm"
+          >
+            <option value="all">Tous les statuts</option>
+            <option value="published">Publiés</option>
+            <option value="draft">Brouillons</option>
+          </select>
+          <div className="flex justify-end">
+            <Button
+              size="icon"
+              className="hidden h-12 w-12 rounded-xl md:inline-flex"
+              aria-label="Nouveau produit"
+              title="Nouveau produit"
+              onClick={() => {
+                setEdit(null);
+                setOpen(true);
+              }}
+            >
+              <Plus className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+      </div>
+      <Button
+        size="icon"
+        className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg md:hidden"
+        aria-label="Nouveau produit"
+        title="Nouveau produit"
+        onClick={() => {
+          setEdit(null);
+          setOpen(true);
+        }}
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
       <div className="flex justify-end">
-        <Button
-          onClick={() => {
-            setEdit(null);
-            setOpen(true);
-          }}
-        >
-          Nouveau produit
-        </Button>
         <Dialog
           open={open}
           onOpenChange={(v) => {
@@ -220,29 +328,74 @@ export function ProductsAdmin({
         </Dialog>
       </div>
 
-      <ul className="divide-y divide-[var(--border)] rounded-xl border border-[var(--border)] bg-[var(--card)]">
-        {products.map((p) => (
-          <li key={p.id} className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="font-medium">{p.name}</p>
-              <p className="text-xs text-[var(--muted-foreground)]">
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] lg:overflow-x-auto">
+        <div className="lg:min-w-[920px]">
+          <div className="hidden grid-cols-12 gap-1 border-b border-[var(--border)]/80 bg-[var(--muted)]/30 px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-[var(--muted-foreground)] lg:grid">
+            <p className="col-span-2 whitespace-nowrap">Image</p>
+            <p className="col-span-6 whitespace-nowrap">Nom</p>
+            <p className="col-span-2 whitespace-nowrap">Prix</p>
+            <p className="col-span-2 whitespace-nowrap">Actions</p>
+          </div>
+
+          {products.map((p) => (
+            <div
+              key={p.id}
+              className="grid grid-cols-1 gap-2 border-b border-[var(--border)]/70 px-3 py-3 last:border-b-0 lg:grid-cols-12 lg:items-center"
+            >
+              <div className="col-span-2">
+              <div className="relative h-14 w-14 overflow-hidden rounded-lg border border-[var(--border)]/80 bg-[var(--muted)]/20">
+                {p.cover_image_url ? (
+                  <Image
+                    src={p.cover_image_url}
+                    alt={p.name}
+                    fill
+                    className="object-cover"
+                    sizes="64px"
+                    unoptimized
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-[10px] text-[var(--muted-foreground)]">
+                    Aucune
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="col-span-6 min-w-0">
+              <p className="whitespace-nowrap font-medium">{p.name}</p>
+              <p className="whitespace-nowrap text-xs text-[var(--muted-foreground)]">
                 {p.type} · {p.is_published ? "publié" : "brouillon"}
               </p>
             </div>
-            <div className="flex gap-2">
+
+            <div className="col-span-2 min-w-[130px] truncate whitespace-nowrap pr-1 text-sm font-medium text-[var(--primary)]">
+              {p.pricing_mode === "quote"
+                ? "Sur devis"
+                : p.pricing_mode === "starting_from"
+                  ? `À partir de ${formatPriceXOF(p.base_price)}`
+                  : formatPriceXOF(p.base_price)}
+            </div>
+
+            <div className="col-span-2 flex flex-nowrap gap-1">
               <Button
                 size="sm"
                 variant="secondary"
+                className="h-9 w-9 p-0"
+                aria-label={`Modifier ${p.name}`}
+                title="Modifier"
                 onClick={() => {
                   setEdit(p);
                   setOpen(true);
                 }}
               >
-                Modifier
+                <Pencil className="h-4 w-4" />
               </Button>
               <Button
                 size="sm"
                 variant="outline"
+                className="h-9 w-9 p-0 text-red-600 hover:text-red-700"
+                aria-label={`Supprimer ${p.name}`}
+                title="Supprimer"
                 onClick={() => {
                   if (!confirm("Supprimer ce produit ?")) return;
                   startTransition(async () => {
@@ -252,12 +405,31 @@ export function ProductsAdmin({
                   });
                 }}
               >
-                Supprimer
+                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
-          </li>
-        ))}
-      </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="flex items-center justify-end gap-2">
+        <Link
+          href={prevHref}
+          aria-disabled={page <= 1}
+          className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border ${page <= 1 ? "pointer-events-none opacity-40" : ""}`}
+          title="Page précédente"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Link>
+        <Link
+          href={nextHref}
+          aria-disabled={page >= totalPages}
+          className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border ${page >= totalPages ? "pointer-events-none opacity-40" : ""}`}
+          title="Page suivante"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Link>
+      </div>
     </div>
   );
 }

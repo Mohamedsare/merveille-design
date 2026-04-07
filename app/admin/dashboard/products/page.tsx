@@ -1,21 +1,38 @@
-import Link from "next/link";
 import { ProductsAdmin } from "@/features/admin/products-admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Category, Product } from "@/types/database";
 
-const PAGE_SIZE = 24;
+const PAGE_SIZE = 20;
 
 function positiveInt(raw: string | undefined, fallback: number) {
   const n = Number(raw);
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
 }
 
+function keep(params: {
+  q?: string;
+  type?: string;
+  published?: string;
+  page?: number;
+}) {
+  const usp = new URLSearchParams();
+  if (params.q) usp.set("q", params.q);
+  if (params.type && params.type !== "all") usp.set("type", params.type);
+  if (params.published && params.published !== "all") usp.set("published", params.published);
+  if (params.page && params.page > 1) usp.set("page", String(params.page));
+  const out = usp.toString();
+  return out ? `?${out}` : "";
+}
+
 export default async function AdminProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; q?: string; type?: string; published?: string }>;
 }) {
   const params = await searchParams;
+  const q = (params.q ?? "").trim();
+  const type = params.type ?? "all";
+  const published = params.published ?? "all";
   const page = positiveInt(params.page, 1);
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
@@ -24,11 +41,10 @@ export default async function AdminProductsPage({
   let categories: Category[] = [];
   let total = 0;
   if (supabase) {
-    const [{ data: p, count }, { data: c }] = await Promise.all([
-      supabase
-        .from("products")
-        .select(
-          `*,
+    let productsQuery = supabase
+      .from("products")
+      .select(
+        `*,
           product_images (
             id,
             product_id,
@@ -39,10 +55,25 @@ export default async function AdminProductsPage({
             sort_order,
             created_at
           )`,
-          { count: "exact" }
-        )
-        .order("display_order")
-        .range(from, to),
+        { count: "exact" }
+      )
+      .order("display_order");
+
+    if (q) {
+      const like = `%${q.replaceAll("%", "")}%`;
+      productsQuery = productsQuery.or(`name.ilike.${like},slug.ilike.${like}`);
+    }
+    if (type === "bag" || type === "box") {
+      productsQuery = productsQuery.eq("type", type);
+    }
+    if (published === "published") {
+      productsQuery = productsQuery.eq("is_published", true);
+    } else if (published === "draft") {
+      productsQuery = productsQuery.eq("is_published", false);
+    }
+
+    const [{ data: p, count }, { data: c }] = await Promise.all([
+      productsQuery.range(from, to),
       supabase.from("categories").select("*").order("sort_order"),
     ]);
     products = (p as Product[]) ?? [];
@@ -52,6 +83,8 @@ export default async function AdminProductsPage({
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const prevPage = Math.max(1, page - 1);
   const nextPage = Math.min(totalPages, page + 1);
+  const prevHref = `/admin/dashboard/products${keep({ q, type, published, page: prevPage })}`;
+  const nextHref = `/admin/dashboard/products${keep({ q, type, published, page: nextPage })}`;
 
   return (
     <div className="space-y-6">
@@ -62,23 +95,17 @@ export default async function AdminProductsPage({
           {total} produit(s) · page {page}/{totalPages}
         </p>
       </div>
-      <div className="flex items-center justify-between">
-        <Link
-          href={`/admin/dashboard/products?page=${prevPage}`}
-          aria-disabled={page <= 1}
-          className={`rounded-lg border px-3 py-1.5 text-sm ${page <= 1 ? "pointer-events-none opacity-40" : ""}`}
-        >
-          Précédent
-        </Link>
-        <Link
-          href={`/admin/dashboard/products?page=${nextPage}`}
-          aria-disabled={page >= totalPages}
-          className={`rounded-lg border px-3 py-1.5 text-sm ${page >= totalPages ? "pointer-events-none opacity-40" : ""}`}
-        >
-          Suivant
-        </Link>
-      </div>
-      <ProductsAdmin products={products} categories={categories} />
+      <ProductsAdmin
+        products={products}
+        categories={categories}
+        q={q}
+        type={type}
+        published={published}
+        page={page}
+        totalPages={totalPages}
+        prevHref={prevHref}
+        nextHref={nextHref}
+      />
     </div>
   );
 }

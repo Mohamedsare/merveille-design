@@ -2,6 +2,7 @@ import { Inbox, Sparkles } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardCharts } from "@/features/admin/dashboard-charts";
 import { DashboardKpiGrid } from "@/features/admin/dashboard-kpi-grid";
+import { orderStatusLabelFr } from "@/lib/admin-fr";
 import { getAdminOverview } from "@/lib/data/admin-stats";
 
 function initials(name: string) {
@@ -114,7 +115,7 @@ export default async function AdminDashboardPage() {
                       </p>
                     </div>
                     <span className="shrink-0 rounded-full bg-[var(--muted)]/55 px-3 py-1.5 text-center text-[10px] font-semibold uppercase tracking-wide text-[var(--foreground)] ring-1 ring-[var(--border)]/50 sm:text-xs">
-                      {o.status}
+                      {orderStatusLabelFr(o.status)}
                     </span>
                   </li>
                 ))}

@@ -1,9 +1,11 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  CircleUserRound,
   BarChart3,
   GraduationCap,
   ImageIcon,
   LayoutDashboard,
+  MessageSquare,
   Package,
   Settings,
   ShoppingBag,
@@ -27,7 +29,13 @@ export const ADMIN_NAV: AdminNavItem[] = [
     href: "/admin/dashboard/orders",
     label: "Commandes",
     icon: ShoppingBag,
-    description: "Suivi des demandes",
+    description: "Suivi des commandes",
+  },
+  {
+    href: "/admin/dashboard/contacts",
+    label: "Messages contact",
+    icon: MessageSquare,
+    description: "Messages depuis le site",
   },
   {
     href: "/admin/dashboard/products",
@@ -58,5 +66,11 @@ export const ADMIN_NAV: AdminNavItem[] = [
     label: "Paramètres",
     icon: Settings,
     description: "Site & SEO",
+  },
+  {
+    href: "/admin/dashboard/account",
+    label: "Mon compte",
+    icon: CircleUserRound,
+    description: "Profil & sécurité",
   },
 ];

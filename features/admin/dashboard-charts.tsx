@@ -14,6 +14,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { Activity, BarChart2, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { orderTypeLabelFr } from "@/lib/admin-fr";
 
 export type DashboardChartsProps = {
   ordersByDay: { date: string; count: number }[];
@@ -69,7 +70,8 @@ function EmptyChart({ message }: { message: string }) {
 
 export function DashboardCharts({ ordersByDay, categorySplit, eventsLast7 }: DashboardChartsProps) {
   const hasOrders = ordersByDay.length > 0;
-  const hasSplit = categorySplit.length > 0;
+  const localizedSplit = categorySplit.map((item) => ({ ...item, name: orderTypeLabelFr(item.name) }));
+  const hasSplit = localizedSplit.length > 0;
   const hasEvents = eventsLast7.length > 0;
 
   return (
@@ -138,7 +140,7 @@ export function DashboardCharts({ ordersByDay, categorySplit, eventsLast7 }: Das
           <div className="h-[220px] w-full sm:h-64 lg:h-72">
             {hasSplit ? (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={categorySplit} margin={{ top: 8, right: 8, left: -16, bottom: 4 }}>
+                <BarChart data={localizedSplit} margin={{ top: 8, right: 8, left: -16, bottom: 4 }}>
                   <CartesianGrid strokeDasharray="4 8" vertical={false} stroke="var(--border)" strokeOpacity={0.85} />
                   <XAxis
                     dataKey="name"

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { logAdminAuditEvent } from "@/lib/admin-audit";
 
@@ -16,6 +17,20 @@ const loginRateStore = new Map<string, LoginRateState>();
 const LOGIN_WINDOW_MS = 10 * 60 * 1000; // 10 min
 const LOGIN_BLOCK_MS = 15 * 60 * 1000; // 15 min
 const LOGIN_MAX_FAILURES = 5;
+
+const profileSchema = z.object({
+  fullName: z.string().trim().min(2, "Nom trop court"),
+  avatarUrl: z.string().trim().optional().default(""),
+});
+
+const emailSchema = z.object({
+  email: z.string().trim().email("Email invalide"),
+});
+
+const passwordSchema = z.object({
+  password: z.string().min(8, "8 caractères minimum"),
+  confirmPassword: z.string().min(8, "8 caractères minimum"),
+});
 
 function getClientIp(rawForwardedFor: string | null, rawRealIp: string | null): string {
   const first = rawForwardedFor?.split(",")[0]?.trim();
@@ -110,4 +125,63 @@ export async function signOutAdmin() {
   }
   revalidatePath("/admin");
   redirect("/admin/login");
+}
+
+export async function updateAdminProfile(raw: unknown) {
+  const parsed = profileSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false as const, error: parsed.error.issues[0]?.message ?? "Donnée invalide" };
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return { ok: false as const, error: "Non configuré" };
+
+  const { error } = await supabase.auth.updateUser({
+    data: {
+      full_name: parsed.data.fullName,
+      avatar_url: parsed.data.avatarUrl || null,
+    },
+  });
+  if (error) return { ok: false as const, error: error.message };
+
+  await logAdminAuditEvent(
+    supabase,
+    "profile_update",
+    { full_name: parsed.data.fullName, avatar_url: parsed.data.avatarUrl || null },
+    "/admin/dashboard/account"
+  );
+  revalidatePath("/admin/dashboard/account");
+  return { ok: true as const };
+}
+
+export async function updateAdminEmail(raw: unknown) {
+  const parsed = emailSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false as const, error: parsed.error.issues[0]?.message ?? "Email invalide" };
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return { ok: false as const, error: "Non configuré" };
+
+  const { error } = await supabase.auth.updateUser({ email: parsed.data.email });
+  if (error) return { ok: false as const, error: error.message };
+
+  await logAdminAuditEvent(supabase, "email_update", { email: parsed.data.email }, "/admin/dashboard/account");
+  revalidatePath("/admin/dashboard/account");
+  return {
+    ok: true as const,
+    message: "Demande envoyée. Vérifiez votre boîte email pour confirmer le changement.",
+  };
+}
+
+export async function updateAdminPassword(raw: unknown) {
+  const parsed = passwordSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false as const, error: parsed.error.issues[0]?.message ?? "Mot de passe invalide" };
+  if (parsed.data.password !== parsed.data.confirmPassword) {
+    return { ok: false as const, error: "Les mots de passe ne correspondent pas" };
+  }
+
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return { ok: false as const, error: "Non configuré" };
+
+  const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
+  if (error) return { ok: false as const, error: error.message };
+
+  await logAdminAuditEvent(supabase, "password_update", {}, "/admin/dashboard/account");
+  revalidatePath("/admin/dashboard/account");
+  return { ok: true as const };
 }

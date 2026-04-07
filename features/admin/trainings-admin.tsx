@@ -1,6 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState, useTransition } from "react";
+import { ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { deleteTraining, upsertTraining } from "@/actions/admin-trainings";
 import { AdminImageField } from "@/components/admin/admin-image-field";
@@ -9,12 +13,60 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { formatPriceXOF } from "@/lib/utils";
 import type { Training } from "@/types/database";
 
-export function TrainingsAdmin({ trainings }: { trainings: Training[] }) {
+type TrainingsAdminProps = {
+  trainings: Training[];
+  q: string;
+  published: string;
+  page: number;
+  totalPages: number;
+  prevHref: string;
+  nextHref: string;
+};
+
+export function TrainingsAdmin({ trainings, q, published, page, totalPages, prevHref, nextHref }: TrainingsAdminProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
   const [edit, setEdit] = useState<Training | null>(null);
+  const [search, setSearch] = useState(q);
+  const [statusFilter, setStatusFilter] = useState(published);
   const [pending, startTransition] = useTransition();
+
+  useEffect(() => {
+    setSearch(q);
+  }, [q]);
+
+  useEffect(() => {
+    setStatusFilter(published);
+  }, [published]);
+
+  const queryBase = useMemo(() => {
+    const params = new URLSearchParams(searchParams?.toString() ?? "");
+    params.delete("page");
+    return params;
+  }, [searchParams]);
+
+  function applyFilters(next: { q?: string; published?: string }) {
+    const params = new URLSearchParams(queryBase.toString());
+    const nextQ = (next.q ?? search).trim();
+    const nextPublished = next.published ?? statusFilter;
+    if (nextQ) params.set("q", nextQ);
+    else params.delete("q");
+    if (nextPublished && nextPublished !== "all") params.set("published", nextPublished);
+    else params.delete("published");
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }
+
+  useEffect(() => {
+    const t = setTimeout(() => applyFilters({ q: search }), 280);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -44,17 +96,55 @@ export function TrainingsAdmin({ trainings }: { trainings: Training[] }) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
+    <div className="space-y-4 lg:space-y-5">
+      <div className="relative rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 lg:p-4">
+        <div className="grid grid-cols-1 gap-2 pr-0 sm:pr-16 lg:grid-cols-[minmax(0,1fr)_12rem] lg:gap-3">
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher une formation..."
+            className="h-11"
+          />
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              const value = e.target.value;
+              setStatusFilter(value);
+              applyFilters({ published: value });
+            }}
+            className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-3 text-sm"
+          >
+            <option value="all">Tous les statuts</option>
+            <option value="published">Publiées</option>
+            <option value="draft">Brouillons</option>
+          </select>
+        </div>
         <Button
+          size="icon"
+          className="absolute right-3 top-3 h-11 w-11 rounded-full lg:right-4 lg:top-4"
+          title="Créer une formation"
+          aria-label="Créer une formation"
           onClick={() => {
             setEdit(null);
             setOpen(true);
           }}
         >
-          Nouvelle formation
+          <Plus className="h-6 w-6" />
         </Button>
       </div>
+
+      <Button
+        size="icon"
+        className="fixed bottom-5 right-5 z-20 h-14 w-14 rounded-full shadow-lg lg:hidden"
+        title="Créer une formation"
+        aria-label="Créer une formation"
+        onClick={() => {
+          setEdit(null);
+          setOpen(true);
+        }}
+      >
+        <Plus className="h-7 w-7" />
+      </Button>
 
       <Dialog
         open={open}
@@ -143,42 +233,92 @@ export function TrainingsAdmin({ trainings }: { trainings: Training[] }) {
         </DialogContent>
       </Dialog>
 
-      <ul className="divide-y divide-[var(--border)] rounded-xl border border-[var(--border)] bg-[var(--card)]">
-        {trainings.map((t) => (
-          <li key={t.id} className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="font-medium">{t.title}</p>
-              <p className="text-xs text-[var(--muted-foreground)]">{t.is_published ? "publié" : "brouillon"}</p>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => {
-                  setEdit(t);
-                  setOpen(true);
-                }}
-              >
-                Modifier
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  if (!confirm("Supprimer ?")) return;
-                  startTransition(async () => {
-                    const res = await deleteTraining(t.id);
-                    if (res.ok) toast.success("Supprimé");
-                    else toast.error(res.error);
-                  });
-                }}
-              >
-                Supprimer
-              </Button>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)]">
+        <div className="hidden lg:grid lg:grid-cols-12 lg:gap-1 lg:px-3 lg:py-2">
+          <p className="col-span-2 text-xs font-medium uppercase tracking-wide text-[var(--muted-foreground)]">Image</p>
+          <p className="col-span-6 text-xs font-medium uppercase tracking-wide text-[var(--muted-foreground)]">Nom</p>
+          <p className="col-span-2 text-xs font-medium uppercase tracking-wide text-[var(--muted-foreground)]">Prix</p>
+          <p className="col-span-2 text-xs font-medium uppercase tracking-wide text-[var(--muted-foreground)]">Actions</p>
+        </div>
+        <ul className="divide-y divide-[var(--border)]">
+          {trainings.length === 0 ? (
+            <li className="px-4 py-8 text-center text-sm text-[var(--muted-foreground)]">Aucune formation trouvée.</li>
+          ) : (
+            trainings.map((t) => (
+              <li key={t.id} className="px-3 py-3">
+                <div className="grid grid-cols-1 gap-2 lg:grid-cols-12 lg:items-center lg:gap-1">
+                  <div className="lg:col-span-2">
+                    <div className="relative h-12 w-12 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--muted)]">
+                      {t.cover_image_url ? (
+                        <Image src={t.cover_image_url} alt={t.title} fill className="object-cover" sizes="48px" />
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="min-w-0 lg:col-span-6">
+                    <p className="truncate whitespace-nowrap text-sm font-medium">{t.title}</p>
+                    <p className="truncate whitespace-nowrap text-xs text-[var(--muted-foreground)]">
+                      {t.is_published ? "publiée" : "brouillon"} · {t.slug}
+                    </p>
+                  </div>
+                  <p className="truncate whitespace-nowrap text-sm lg:col-span-2">
+                    {t.price ? formatPriceXOF(t.price) : "Sur devis"}
+                  </p>
+                  <div className="flex items-center gap-1 lg:col-span-2">
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      className="h-8 w-8"
+                      title="Modifier"
+                      aria-label={`Modifier ${t.title}`}
+                      onClick={() => {
+                        setEdit(t);
+                        setOpen(true);
+                      }}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="h-8 w-8"
+                      title="Supprimer"
+                      aria-label={`Supprimer ${t.title}`}
+                      onClick={() => {
+                        if (!confirm("Supprimer ?")) return;
+                        startTransition(async () => {
+                          const res = await deleteTraining(t.id);
+                          if (res.ok) toast.success("Supprimé");
+                          else toast.error(res.error);
+                        });
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </li>
+            ))
+          )}
+        </ul>
+      </div>
+
+      <div className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2">
+        <p className="text-xs text-[var(--muted-foreground)]">
+          Page {page} / {totalPages}
+        </p>
+        <div className="flex items-center gap-2">
+          <Button size="icon" variant="outline" disabled={page <= 1} asChild>
+            <Link href={prevHref} aria-label="Page précédente">
+              <ChevronLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button size="icon" variant="outline" disabled={page >= totalPages} asChild>
+            <Link href={nextHref} aria-label="Page suivante">
+              <ChevronRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

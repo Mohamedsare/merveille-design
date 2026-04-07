@@ -1,11 +1,13 @@
 "use client";
 
 import { useTransition } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import Image from "next/image";
 import { requestAllImageEnhancements, requestImageEnhancement } from "@/actions/admin-products";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { enhancementStatusLabelFr } from "@/lib/admin-fr";
 
 type Row = {
   id: string;
@@ -16,7 +18,10 @@ type Row = {
 };
 
 export function MediaEnhancePanel({ rows }: { rows: Row[] }) {
-  const [pending, startTransition] = useTransition();
+  const [pendingBatch, startBatchTransition] = useTransition();
+  const [pendingSingle, startSingleTransition] = useTransition();
+  const [activeRow, setActiveRow] = useState<string | null>(null);
+  const [activeMode, setActiveMode] = useState<"safe" | "premium" | null>(null);
   const toProcess = rows.filter((r) => r.enhancement_status !== "approved").length;
 
   return (
@@ -31,9 +36,9 @@ export function MediaEnhancePanel({ rows }: { rows: Row[] }) {
         <Button
           type="button"
           variant="secondary"
-          disabled={pending || toProcess === 0}
+          disabled={pendingBatch || pendingSingle || toProcess === 0}
           onClick={() => {
-            startTransition(async () => {
+            startBatchTransition(async () => {
               const res = await requestAllImageEnhancements();
               if (!res.ok) {
                 toast.error("error" in res ? res.error : "Erreur");
@@ -51,7 +56,7 @@ export function MediaEnhancePanel({ rows }: { rows: Row[] }) {
             });
           }}
         >
-          {pending ? "Traitement en cours…" : "Améliorer tout"}
+          {pendingBatch ? "Traitement en cours…" : "Améliorer tout"}
         </Button>
         <span className="text-xs text-[var(--muted-foreground)]">{toProcess} image(s) à traiter</span>
       </div>
@@ -66,37 +71,49 @@ export function MediaEnhancePanel({ rows }: { rows: Row[] }) {
             </div>
             <div className="space-y-2 p-4">
               <p className="text-sm font-medium">{r.products?.name ?? "Produit"}</p>
-              <Badge variant="outline">{r.enhancement_status}</Badge>
+              <Badge variant="outline">{enhancementStatusLabelFr(r.enhancement_status)}</Badge>
               <Button
                 type="button"
                 size="sm"
                 className="w-full"
-                disabled={pending}
+                disabled={pendingBatch || (pendingSingle && activeRow === r.id)}
                 onClick={() => {
-                  startTransition(async () => {
+                  setActiveRow(r.id);
+                  setActiveMode("safe");
+                  startSingleTransition(async () => {
                     const res = await requestImageEnhancement(r.id, "safe");
                     if (res.ok) toast.success("Traitement Safe lance");
                     else toast.error("error" in res ? res.error : "Erreur");
+                    setActiveRow(null);
+                    setActiveMode(null);
                   });
                 }}
               >
-                Profil Safe
+                {pendingSingle && activeRow === r.id && activeMode === "safe"
+                  ? "Traitement Safe…"
+                  : "Profil Safe"}
               </Button>
               <Button
                 type="button"
                 size="sm"
                 variant="secondary"
                 className="w-full"
-                disabled={pending}
+                disabled={pendingBatch || (pendingSingle && activeRow === r.id)}
                 onClick={() => {
-                  startTransition(async () => {
+                  setActiveRow(r.id);
+                  setActiveMode("premium");
+                  startSingleTransition(async () => {
                     const res = await requestImageEnhancement(r.id, "premium");
                     if (res.ok) toast.success("Traitement Premium lance");
                     else toast.error("error" in res ? res.error : "Erreur");
+                    setActiveRow(null);
+                    setActiveMode(null);
                   });
                 }}
               >
-                Profil Premium
+                {pendingSingle && activeRow === r.id && activeMode === "premium"
+                  ? "Traitement Premium…"
+                  : "Profil Premium"}
               </Button>
             </div>
           </li>

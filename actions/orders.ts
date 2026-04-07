@@ -137,15 +137,13 @@ export async function submitQuickContact(raw: unknown) {
   }
   const supabase = await createServerSupabaseClient();
   if (!supabase) return { ok: false as const, error: "Supabase non configuré" };
-  const { error } = await supabase.from("orders").insert({
-    customer_name: parsed.data.name,
+  const { error } = await supabase.from("contact_messages").insert({
+    name: parsed.data.name,
     phone: parsed.data.phone,
-    order_type: "custom_bag",
-    quantity: 1,
-    details: parsed.data.message,
+    message: parsed.data.message,
     status: "new",
   });
   if (error) return { ok: false as const, error: error.message };
-  revalidatePath("/admin/dashboard/orders");
+  revalidatePath("/admin/dashboard/contacts");
   return { ok: true as const };
 }
