@@ -22,7 +22,8 @@ export function MediaEnhancePanel({ rows }: { rows: Row[] }) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-[var(--muted-foreground)]">
-        Traitement subtil (luminosité, contraste, netteté) via Sharp. Créez le bucket Supabase{" "}
+        Mode rapide via Sharp + mode IA fort (DeepSeek, si cle configuree) pour preset adapte.
+        Creez le bucket Supabase{" "}
         <code className="rounded bg-[var(--muted)] px-1">media</code> avec politiques admin.
         Une fois le traitement réussi, l&apos;image améliorée est appliquée automatiquement sur le site.
       </p>
@@ -73,13 +74,29 @@ export function MediaEnhancePanel({ rows }: { rows: Row[] }) {
                 disabled={pending}
                 onClick={() => {
                   startTransition(async () => {
-                    const res = await requestImageEnhancement(r.id);
-                    if (res.ok) toast.success("Traitement lancé");
+                    const res = await requestImageEnhancement(r.id, "quick");
+                    if (res.ok) toast.success("Traitement rapide lance");
                     else toast.error("error" in res ? res.error : "Erreur");
                   });
                 }}
               >
-                Améliorer
+                Ameliorer (rapide)
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                className="w-full"
+                disabled={pending}
+                onClick={() => {
+                  startTransition(async () => {
+                    const res = await requestImageEnhancement(r.id, "ai");
+                    if (res.ok) toast.success("Traitement IA lance");
+                    else toast.error("error" in res ? res.error : "Erreur");
+                  });
+                }}
+              >
+                Ameliorer fort (IA)
               </Button>
             </div>
           </li>

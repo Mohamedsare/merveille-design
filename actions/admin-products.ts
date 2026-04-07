@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { runSharpEnhancementForProductImage } from "@/services/imageEnhancementService";
+import { runSharpEnhancementForProductImage, type EnhancementMode } from "@/services/imageEnhancementService";
 import { productAdminSchema } from "@/validation/schemas";
 
 export type UpsertProductResult =
@@ -149,7 +149,7 @@ export async function deleteProduct(id: string) {
   return { ok: true as const };
 }
 
-export async function requestImageEnhancement(productImageId: string) {
+export async function requestImageEnhancement(productImageId: string, mode: EnhancementMode = "quick") {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return { ok: false as const, error: "Non configuré" };
   const { data: row } = await supabase
@@ -164,7 +164,7 @@ export async function requestImageEnhancement(productImageId: string) {
     .update({ enhancement_status: "pending" })
     .eq("id", productImageId);
 
-  await runSharpEnhancementForProductImage(supabase, productImageId, row.image_url);
+  await runSharpEnhancementForProductImage(supabase, productImageId, row.image_url, mode);
 
   revalidatePath("/admin/dashboard/media");
   return { ok: true as const };
