@@ -33,11 +33,11 @@ export function ProductImagePreviewDialog({ product }: { product: Product }) {
           aria-label={`Voir la photo de ${product.name} en grand format`}
         />
       </DialogTrigger>
-      <DialogContent className="w-[calc(100%-1rem)] max-w-3xl overflow-hidden p-0">
+      <DialogContent className="w-[min(96vw,1100px)] max-w-none overflow-hidden p-0">
         <DialogHeader className="sr-only">
           <DialogTitle>Galerie photo - {product.name}</DialogTitle>
         </DialogHeader>
-        <div className="relative aspect-[4/5] w-full bg-black">
+        <div className="relative h-[78vh] w-full max-h-[86vh] bg-black sm:h-[82vh]">
           <Image
             src={current}
             alt={`${product.name} - vue ${index + 1}`}

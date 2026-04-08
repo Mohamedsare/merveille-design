@@ -4,10 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { ProductGalleryEditor } from "@/components/admin/product-gallery-editor";
-import { deleteProduct, upsertProduct } from "@/actions/admin-products";
+import { addProductImage, deleteProduct, upsertProduct } from "@/actions/admin-products";
+import { uploadAdminMedia } from "@/actions/admin-media";
 import { AdminImageField } from "@/components/admin/admin-image-field";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -16,6 +17,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatPriceXOF } from "@/lib/utils";
 import type { Category, Product } from "@/types/database";
+
+function toSlug(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
 
 export function ProductsAdmin({
   products,
@@ -46,6 +59,8 @@ export function ProductsAdmin({
   const [query, setQuery] = useState(q);
   const [typeFilter, setTypeFilter] = useState(type);
   const [publishedFilter, setPublishedFilter] = useState(published);
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+  const galleryFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setQuery(q);
@@ -80,14 +95,16 @@ export function ProductsAdmin({
   function close() {
     setOpen(false);
     setEdit(null);
+    setGalleryFiles([]);
   }
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+    const name = String(fd.get("name") ?? "");
     const raw = {
-      name: fd.get("name"),
-      slug: fd.get("slug"),
+      name,
+      slug: toSlug(name),
       category_id: fd.get("category_id") || null,
       type: fd.get("type"),
       short_description: fd.get("short_description") || "",
@@ -104,6 +121,32 @@ export function ProductsAdmin({
     startTransition(async () => {
       const res = await upsertProduct(edit?.id ?? null, raw);
       if (res.ok) {
+        if (galleryFiles.length > 0) {
+          let added = 0;
+          let failed = 0;
+          for (const file of galleryFiles) {
+            const uploadFd = new FormData();
+            uploadFd.set("file", file);
+            uploadFd.set("folder", "products");
+            const uploaded = await uploadAdminMedia(uploadFd);
+            if (!uploaded.ok) {
+              failed += 1;
+              continue;
+            }
+            const add = await addProductImage(res.id, uploaded.url);
+            if (add.ok) added += 1;
+            else failed += 1;
+          }
+          setGalleryFiles([]);
+          if (added > 0 && failed > 0) {
+            toast.warning(`${added} photo(s) ajoutée(s), ${failed} échec(s)`);
+          } else if (added > 0) {
+            toast.success(`${added} photo(s) de galerie ajoutée(s)`);
+          } else {
+            toast.error("Les photos de galerie n'ont pas pu être ajoutées.");
+          }
+        }
+
         if (res.warning) {
           toast.warning(edit ? "Produit mis à jour" : "Produit créé", {
             description: res.warning,
@@ -211,10 +254,6 @@ export function ProductsAdmin({
                 <Label htmlFor="name">Nom</Label>
                 <Input id="name" name="name" defaultValue={edit?.name} required />
               </div>
-              <div className="space-y-1">
-                <Label htmlFor="slug">Slug</Label>
-                <Input id="slug" name="slug" defaultValue={edit?.slug} required />
-              </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
                   <Label>Type</Label>
@@ -287,6 +326,49 @@ export function ProductsAdmin({
                 label="Image de couverture"
                 defaultUrl={edit?.cover_image_url}
               />
+              {!edit ? (
+                <div className="space-y-2 rounded-xl border border-[var(--border)] bg-[var(--muted)]/20 p-3">
+                  <Label>Galerie (plusieurs photos)</Label>
+                  <p className="text-xs text-[var(--muted-foreground)]">
+                    Vous pouvez choisir plusieurs images en une fois. Elles seront ajoutées après la création.
+                  </p>
+                  <input
+                    ref={galleryFileRef}
+                    type="file"
+                    multiple
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    className="hidden"
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files ?? []);
+                      e.target.value = "";
+                      if (!files.length) return;
+                      setGalleryFiles((prev) => [...prev, ...files]);
+                    }}
+                  />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => galleryFileRef.current?.click()}
+                    >
+                      Ajouter des photos
+                    </Button>
+                    <span className="text-xs text-[var(--muted-foreground)]">{galleryFiles.length} fichier(s) sélectionné(s)</span>
+                    {galleryFiles.length > 0 ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-rose-600"
+                        onClick={() => setGalleryFiles([])}
+                      >
+                        Vider
+                      </Button>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
               {edit?.id ? (
                 <ProductGalleryEditor
                   productId={edit.id}

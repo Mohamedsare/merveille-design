@@ -48,7 +48,7 @@ export function ProductDetailDialog({
         <Button
           variant="outline"
           size="sm"
-          className="w-full px-2 text-[11px] sm:flex-1 sm:px-3 sm:text-sm"
+          className="w-full px-2 text-[11px] sm:px-3 sm:text-sm"
         >
           Détails
         </Button>

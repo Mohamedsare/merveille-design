@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { MediaEnhancePanel } from "@/features/admin/media-enhance-panel";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -54,32 +55,36 @@ export default async function AdminMediaPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-semibold">Médias & amélioration</h1>
+        <h1 className="font-display text-2xl font-semibold">Photos des produits</h1>
         <p className="text-sm text-[var(--muted-foreground)]">
-          Pipeline Sharp subtil. Bucket Supabase <code className="rounded bg-[var(--muted)] px-1">media</code>{" "}
-          requis pour l’upload des versions améliorées.
+          Retrouvez ici toutes les photos de vos produits. Vous pouvez les rendre plus nettes et plus belles pour la
+          boutique : une fois le traitement terminé, la nouvelle version s’affiche automatiquement sur le site.
         </p>
         <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-          {total} image(s) · page {page}/{totalPages}
+          {total} photo{total > 1 ? "s" : ""} au total · page {page} sur {totalPages}
         </p>
       </div>
+      <MediaEnhancePanel rows={rows} />
       <div className="flex items-center justify-between">
         <Link
           href={`/admin/dashboard/media?page=${prevPage}`}
+          aria-label="Page précédente"
+          title="Page précédente"
           aria-disabled={page <= 1}
-          className={`rounded-lg border px-3 py-1.5 text-sm ${page <= 1 ? "pointer-events-none opacity-40" : ""}`}
+          className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border ${page <= 1 ? "pointer-events-none opacity-40" : ""}`}
         >
-          Précédent
+          <ChevronLeft className="h-4 w-4" aria-hidden />
         </Link>
         <Link
           href={`/admin/dashboard/media?page=${nextPage}`}
+          aria-label="Page suivante"
+          title="Page suivante"
           aria-disabled={page >= totalPages}
-          className={`rounded-lg border px-3 py-1.5 text-sm ${page >= totalPages ? "pointer-events-none opacity-40" : ""}`}
+          className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border ${page >= totalPages ? "pointer-events-none opacity-40" : ""}`}
         >
-          Suivant
+          <ChevronRight className="h-4 w-4" aria-hidden />
         </Link>
       </div>
-      <MediaEnhancePanel rows={rows} />
     </div>
   );
 }

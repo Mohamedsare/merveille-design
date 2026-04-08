@@ -13,7 +13,7 @@ const nav = [
   { href: "#modeles", label: "Modèles" },
   { href: "#histoire", label: "Histoire" },
   { href: "#commander", label: "Commander" },
-  { href: "#box", label: "Box cadeaux" },
+  { href: "#box", label: "Box" },
   { href: "#formations", label: "Formations" },
   { href: "#faq", label: "FAQ" },
   { href: "#contact", label: "Contact" },
@@ -56,7 +56,7 @@ export function PublicHeader({ settings }: { settings: SiteSettings }) {
         </nav>
         <div className="hidden md:block">
           <Button asChild size="sm">
-            <a href="#commander">Commander maintenant</a>
+            <a href="#modeles">Commander maintenant</a>
           </Button>
         </div>
         <button
@@ -86,7 +86,7 @@ export function PublicHeader({ settings }: { settings: SiteSettings }) {
             </a>
           ))}
           <Button asChild className="mt-2 w-full">
-            <a href="#commander" onClick={() => setOpen(false)}>
+            <a href="#modeles" onClick={() => setOpen(false)}>
               Commander maintenant
             </a>
           </Button>

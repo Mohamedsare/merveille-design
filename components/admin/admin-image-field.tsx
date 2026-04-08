@@ -5,7 +5,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { uploadAdminMedia, type AdminMediaFolder } from "@/actions/admin-media";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
@@ -80,16 +79,6 @@ export function AdminImageField({ name, folder, label = "Image", defaultUrl, cla
             {uploading ? "Envoi…" : "Choisir une image"}
           </Button>
           <p className="text-xs text-[var(--muted-foreground)]">JPEG, PNG, WebP ou GIF — max 5 Mo</p>
-          <div className="space-y-1">
-            <span className="text-xs text-[var(--muted-foreground)]">Ou URL externe</span>
-            <Input
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              type="url"
-              placeholder="https://…"
-              className="text-sm"
-            />
-          </div>
         </div>
       </div>
     </div>

@@ -54,7 +54,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
     href: "/admin/dashboard/media",
     label: "Médias",
     icon: ImageIcon,
-    description: "Images & retouches",
+    description: "Photos produits et retouche",
   },
   {
     href: "/admin/dashboard/lifestyle-gallery",

@@ -1,14 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { saveLifestyleGallery } from "@/actions/admin-lifestyle-gallery";
 import { uploadAdminMedia } from "@/actions/admin-media";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export function LifestyleGalleryAdmin({ settingsId, initialUrls }: { settingsId: string; initialUrls: string[] }) {
@@ -42,29 +41,30 @@ export function LifestyleGalleryAdmin({ settingsId, initialUrls }: { settingsId:
   );
 
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const files = Array.from(e.target.files ?? []);
     e.target.value = "";
-    if (!file) return;
+    if (files.length === 0) return;
     setUploading(true);
-    const fd = new FormData();
-    fd.set("file", file);
-    fd.set("folder", "site");
-    const up = await uploadAdminMedia(fd);
+    const uploaded: string[] = [];
+    let failed = 0;
+    for (const file of files) {
+      const fd = new FormData();
+      fd.set("file", file);
+      fd.set("folder", "site");
+      const up = await uploadAdminMedia(fd);
+      if (up.ok) uploaded.push(up.url);
+      else failed += 1;
+    }
     setUploading(false);
-    if (!up.ok) {
-      toast.error(up.error);
+    if (uploaded.length === 0) {
+      toast.error("Aucune image n'a pu être téléversée.");
       return;
     }
-    const next = [...urls, up.url];
+    if (failed > 0) {
+      toast.warning(`${uploaded.length} image(s) ajoutée(s), ${failed} échec(s).`);
+    }
+    const next = [...urls, ...uploaded];
     persist(next);
-  };
-
-  const addUrlRow = () => {
-    setUrls((prev) => [...prev, ""]);
-  };
-
-  const updateUrl = (index: number, value: string) => {
-    setUrls((prev) => prev.map((u, i) => (i === index ? value : u)));
   };
 
   const removeAt = (index: number) => {
@@ -91,16 +91,13 @@ export function LifestyleGalleryAdmin({ settingsId, initialUrls }: { settingsId:
           <input
             ref={fileRef}
             type="file"
+            multiple
             accept="image/jpeg,image/png,image/webp,image/gif"
             className="hidden"
             onChange={onFile}
           />
           <Button type="button" variant="secondary" disabled={uploading || pending} onClick={() => fileRef.current?.click()}>
-            {uploading ? "Envoi…" : "Téléverser une image"}
-          </Button>
-          <Button type="button" variant="outline" disabled={pending} onClick={addUrlRow}>
-            <Plus className="mr-2 h-4 w-4" />
-            Coller une URL
+            {uploading ? "Envoi…" : "Téléverser des images"}
           </Button>
         </div>
       </div>
@@ -118,7 +115,7 @@ export function LifestyleGalleryAdmin({ settingsId, initialUrls }: { settingsId:
           ) : (
             urls.map((url, index) => (
               <li
-                key={`${index}-${url.slice(0, 20)}`}
+                key={`${index}-${url}`}
                 className="flex flex-col gap-2 rounded-xl border border-[var(--border)] bg-[var(--background)] p-3 sm:flex-row sm:items-center"
               >
                 <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--muted)]/30">
@@ -128,14 +125,7 @@ export function LifestyleGalleryAdmin({ settingsId, initialUrls }: { settingsId:
                     <div className="flex h-full items-center justify-center text-[10px] text-[var(--muted-foreground)]">Aperçu</div>
                   )}
                 </div>
-                <div className="min-w-0 flex-1 space-y-2">
-                  <Input
-                    value={url}
-                    onChange={(e) => updateUrl(index, e.target.value)}
-                    placeholder="https://…"
-                    className="text-sm"
-                  />
-                </div>
+                <div className="min-w-0 flex-1 text-xs text-[var(--muted-foreground)]">Photo lifestyle #{index + 1}</div>
                 <div className="flex shrink-0 gap-1">
                   <Button type="button" size="icon" variant="ghost" className="h-9 w-9" title="Monter" onClick={() => move(index, "up")} disabled={pending || index === 0}>
                     <ArrowUp className="h-4 w-4" />

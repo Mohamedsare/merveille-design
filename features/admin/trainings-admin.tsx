@@ -16,6 +16,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatPriceXOF } from "@/lib/utils";
 import type { Training } from "@/types/database";
 
+function toSlug(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 type TrainingsAdminProps = {
   trainings: Training[];
   q: string;
@@ -71,9 +83,10 @@ export function TrainingsAdmin({ trainings, q, published, page, totalPages, prev
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+    const title = String(fd.get("title") ?? "");
     const raw = {
-      title: fd.get("title"),
-      slug: fd.get("slug"),
+      title,
+      slug: toSlug(title),
       short_description: fd.get("short_description") || "",
       description: fd.get("description") || "",
       price: fd.get("price") ? Number(fd.get("price")) : null,
@@ -161,10 +174,6 @@ export function TrainingsAdmin({ trainings, q, published, page, totalPages, prev
             <div className="space-y-1">
               <Label htmlFor="title">Titre</Label>
               <Input id="title" name="title" defaultValue={edit?.title} required />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="slug">Slug</Label>
-              <Input id="slug" name="slug" defaultValue={edit?.slug} required />
             </div>
             <div className="space-y-1">
               <Label htmlFor="short_description">Résumé</Label>

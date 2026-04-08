@@ -27,10 +27,11 @@ export function MediaEnhancePanel({ rows }: { rows: Row[] }) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-[var(--muted-foreground)]">
-        Deux profils : Safe (fidelite produit) et Premium (OpenAI + rendu plus net).
-        Creez le bucket Supabase{" "}
-        <code className="rounded bg-[var(--muted)] px-1">media</code> avec politiques admin.
-        Une fois le traitement réussi, l&apos;image améliorée est appliquée automatiquement sur le site.
+        <strong className="font-medium text-[var(--foreground)]">Retouche fidèle</strong> : la photo reste très proche
+        de l’original, idéal pour garder la couleur et la forme du sac.{" "}
+        <strong className="font-medium text-[var(--foreground)]">Retouche pro</strong> : rendu plus net et lumineux,
+        avec une aide intelligente pour sublimer la photo. Dans les deux cas, quand c’est prêt, c’est la boutique qui
+        se met à jour toute seule.
       </p>
       <div className="flex flex-wrap items-center gap-2">
         <Button
@@ -45,20 +46,24 @@ export function MediaEnhancePanel({ rows }: { rows: Row[] }) {
                 return;
               }
               if (res.processed === 0 && res.failed === 0) {
-                toast.success("Toutes les images sont déjà approuvées");
+                toast.success("Rien à faire : toutes les photos sont déjà validées");
                 return;
               }
               if (res.failed > 0) {
-                toast.warning(`${res.processed} image(s) améliorée(s), ${res.failed} échec(s)`);
+                toast.warning(
+                  `${res.processed} photo${res.processed > 1 ? "s" : ""} retouchée${res.processed > 1 ? "s" : ""}, ${res.failed} échec${res.failed > 1 ? "s" : ""}`,
+                );
               } else {
-                toast.success(`${res.processed} image(s) améliorée(s)`);
+                toast.success(
+                  `${res.processed} photo${res.processed > 1 ? "s" : ""} retouchée${res.processed > 1 ? "s" : ""}`,
+                );
               }
             });
           }}
         >
-          {pendingBatch ? "Traitement en cours…" : "Améliorer tout"}
+          {pendingBatch ? "Traitement en cours…" : "Améliorer toutes les photos en attente"}
         </Button>
-        <span className="text-xs text-[var(--muted-foreground)]">{toProcess} image(s) à traiter</span>
+        <span className="text-xs text-[var(--muted-foreground)]">{toProcess} photo{toProcess > 1 ? "s" : ""} à retoucher</span>
       </div>
       <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {rows.map((r) => (
@@ -82,7 +87,7 @@ export function MediaEnhancePanel({ rows }: { rows: Row[] }) {
                   setActiveMode("safe");
                   startSingleTransition(async () => {
                     const res = await requestImageEnhancement(r.id, "safe");
-                    if (res.ok) toast.success("Traitement Safe lance");
+                    if (res.ok) toast.success("Retouche fidèle lancée");
                     else toast.error("error" in res ? res.error : "Erreur");
                     setActiveRow(null);
                     setActiveMode(null);
@@ -90,8 +95,8 @@ export function MediaEnhancePanel({ rows }: { rows: Row[] }) {
                 }}
               >
                 {pendingSingle && activeRow === r.id && activeMode === "safe"
-                  ? "Traitement Safe…"
-                  : "Profil Safe"}
+                  ? "Traitement…"
+                  : "Retouche fidèle"}
               </Button>
               <Button
                 type="button"
@@ -104,7 +109,7 @@ export function MediaEnhancePanel({ rows }: { rows: Row[] }) {
                   setActiveMode("premium");
                   startSingleTransition(async () => {
                     const res = await requestImageEnhancement(r.id, "premium");
-                    if (res.ok) toast.success("Traitement Premium lance");
+                    if (res.ok) toast.success("Retouche pro lancée");
                     else toast.error("error" in res ? res.error : "Erreur");
                     setActiveRow(null);
                     setActiveMode(null);
@@ -112,8 +117,8 @@ export function MediaEnhancePanel({ rows }: { rows: Row[] }) {
                 }}
               >
                 {pendingSingle && activeRow === r.id && activeMode === "premium"
-                  ? "Traitement Premium…"
-                  : "Profil Premium"}
+                  ? "Traitement…"
+                  : "Retouche pro"}
               </Button>
             </div>
           </li>
@@ -121,7 +126,7 @@ export function MediaEnhancePanel({ rows }: { rows: Row[] }) {
       </ul>
       {rows.length === 0 ? (
         <p className="text-center text-sm text-[var(--muted-foreground)]">
-          Aucune image produit. Ajoutez des images depuis les fiches produits (à venir) ou en base.
+          Aucune photo pour l’instant. Ajoutez des images depuis la fiche de chaque produit (couverture ou galerie).
         </p>
       ) : null}
     </div>

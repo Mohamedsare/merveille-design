@@ -118,8 +118,8 @@ export function ModelsGallery({
                   exit={{ opacity: 0 }}
                   transition={{ delay: i * 0.04 }}
                 >
-                  <Card className="overflow-hidden border-0 shadow-soft ring-1 ring-[var(--border)]/80">
-                    <div className="relative aspect-[4/5] bg-[var(--muted)]/30">
+                  <Card className="border-0 shadow-soft ring-1 ring-[var(--border)]/80">
+                    <div className="relative aspect-[4/5] overflow-hidden rounded-t-2xl bg-[var(--muted)]/30">
                       {p.cover_image_url ? (
                         <Image
                           src={p.cover_image_url}
@@ -178,7 +178,7 @@ export function ModelsGallery({
                             ? `À partir de ${formatPriceXOF(p.base_price)}`
                             : formatPriceXOF(p.base_price)}
                       </p>
-                      <div className="flex flex-col gap-1.5 pt-0.5 sm:flex-row sm:gap-2 sm:pt-1">
+                      <div className="grid grid-cols-1 gap-1.5 pt-0.5 sm:grid-cols-2 sm:gap-2 sm:pt-1 lg:grid-cols-3">
                         <ProductDetailDialog product={p} categoryName={cat?.name} />
                         <OrderSheet
                           mode="model"
@@ -186,11 +186,10 @@ export function ModelsGallery({
                           trigger={
                             <Button
                               variant="default"
-                              className="w-full px-2 text-[11px] sm:flex-1 sm:px-3 sm:text-sm"
+                              className="w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap px-2 text-[9px] leading-none sm:px-3 sm:text-[10px] md:text-xs"
                               size="sm"
                             >
-                              <span className="sm:hidden">Commander</span>
-                              <span className="hidden sm:inline">Commander ce modèle</span>
+                              Commander
                             </Button>
                           }
                         />
@@ -200,7 +199,7 @@ export function ModelsGallery({
                           trigger={
                             <Button
                               variant="outline"
-                              className="w-full px-2 text-[11px] sm:flex-1 sm:px-3 sm:text-sm"
+                              className="w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap px-2 text-[9px] leading-none sm:px-3 sm:text-[10px] md:text-xs sm:col-span-2 lg:col-span-1"
                               size="sm"
                             >
                               <span className="sm:hidden">Perso.</span>

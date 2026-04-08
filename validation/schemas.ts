@@ -9,10 +9,11 @@ export const orderProductSchema = z.object({
   order_type: z.enum(["bag", "box", "custom_bag"]),
   product_id: z.string().uuid().optional().nullable(),
   quantity: z.coerce.number().int().min(1).default(1),
-  budget: z.string().optional(),
   customization_request: z.string().optional(),
-  details: z.string().min(10, "Décrivez votre besoin (10 caractères min)"),
-  fabric_color_notes: z.string().optional(),
+  details: z
+    .string()
+    .transform((s) => s.trim())
+    .transform((s) => (s.length > 0 ? s : null)),
   inspiration_image_url: z
     .union([z.literal(""), z.string().url()])
     .optional()
