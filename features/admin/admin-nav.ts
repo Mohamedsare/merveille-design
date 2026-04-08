@@ -5,6 +5,7 @@ import {
   GraduationCap,
   ImageIcon,
   LayoutDashboard,
+  LayoutGrid,
   MessageSquare,
   Package,
   Settings,
@@ -54,6 +55,12 @@ export const ADMIN_NAV: AdminNavItem[] = [
     label: "Médias",
     icon: ImageIcon,
     description: "Images & retouches",
+  },
+  {
+    href: "/admin/dashboard/lifestyle-gallery",
+    label: "Galerie lifestyle",
+    icon: LayoutGrid,
+    description: "Photos page d’accueil",
   },
   {
     href: "/admin/dashboard/analytics",

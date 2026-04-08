@@ -101,7 +101,7 @@ export default async function HomePage() {
         <TrustBarSection />
         <WhyChooseSection />
         <ModelsGallery products={products} categories={categories} settings={settings} />
-        <LifestyleGallerySection products={products} />
+        <LifestyleGallerySection settings={settings} products={products} />
         <HowItWorksSection settings={settings} />
         <BrandStorySection settings={settings} />
         <BoxSection boxProducts={boxProducts} settings={settings} />

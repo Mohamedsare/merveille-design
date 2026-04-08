@@ -1,20 +1,30 @@
 "use client";
 
 import Image from "next/image";
+import { parseLifestyleGalleryUrls } from "@/lib/lifestyle-gallery";
 import { buildProductGalleryUrls } from "@/lib/product-images";
-import type { Product } from "@/types/database";
+import type { Product, SiteSettings } from "@/types/database";
 
-export function LifestyleGallerySection({ products }: { products: Product[] }) {
-  const images = products
-    .flatMap((product) => {
-      const urls = buildProductGalleryUrls(product);
-      return urls.map((url, idx) => ({
-        id: `${product.id}-${idx}`,
-        url,
-        alt: `${product.name} - photo lifestyle`,
-      }));
-    })
-    .slice(0, 9);
+export function LifestyleGallerySection({ settings, products }: { settings: SiteSettings; products: Product[] }) {
+  const curated = parseLifestyleGalleryUrls(settings);
+
+  const images =
+    curated.length > 0
+      ? curated.map((url, idx) => ({
+          id: `lifestyle-${idx}`,
+          url,
+          alt: "Galerie lifestyle Merveill'S Design",
+        }))
+      : products
+          .flatMap((product) => {
+            const urls = buildProductGalleryUrls(product);
+            return urls.map((url, idx) => ({
+              id: `${product.id}-${idx}`,
+              url,
+              alt: `${product.name} - photo lifestyle`,
+            }));
+          })
+          .slice(0, 9);
 
   if (images.length === 0) return null;
 
@@ -35,6 +45,7 @@ export function LifestyleGallerySection({ products }: { products: Product[] }) {
                 src={image.url}
                 alt={image.alt}
                 fill
+                unoptimized
                 className="object-cover transition-transform duration-500 hover:scale-[1.03]"
                 sizes="(max-width: 640px) 50vw, 33vw"
               />
