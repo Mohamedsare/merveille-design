@@ -1,9 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import { Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { updateOrderStatus } from "@/actions/admin-orders";
+import { deleteOrder, updateOrderStatus } from "@/actions/admin-orders";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Order } from "@/types/database";
 
@@ -52,6 +55,7 @@ export function TrainingBookingsAdmin({
   trainingNamesById: Record<string, string>;
   trainingThumbsById: Record<string, string>;
 }) {
+  const router = useRouter();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"all" | string>("all");
   const [pending, startTransition] = useTransition();
@@ -73,6 +77,17 @@ export function TrainingBookingsAdmin({
       const res = await updateOrderStatus({ id, status: nextStatus });
       if (res.ok) toast.success("Réservation mise à jour");
       else toast.error(res.error ?? "Erreur");
+    });
+  }
+
+  function confirmDeleteBooking(id: string) {
+    if (!window.confirm("Supprimer définitivement cette réservation ? Cette action est irréversible.")) return;
+    startTransition(async () => {
+      const res = await deleteOrder({ id });
+      if (res.ok) {
+        toast.success("Réservation supprimée");
+        router.refresh();
+      } else toast.error(res.error ?? "Erreur");
     });
   }
 
@@ -112,7 +127,7 @@ export function TrainingBookingsAdmin({
         ) : (
           filtered.map((b) => (
             <li key={b.id} className="rounded-xl border border-[var(--border)] bg-[var(--background)] p-3">
-              <div className="grid grid-cols-1 gap-3 lg:grid-cols-[3rem_minmax(0,1fr)_13rem] lg:items-center">
+              <div className="grid grid-cols-1 gap-3 lg:grid-cols-[3rem_minmax(0,1fr)_minmax(10rem,17rem)] lg:items-center">
                 <div className="relative h-12 w-12 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--muted)]">
                   {b.training_id && trainingThumbsById[b.training_id] ? (
                     <Image
@@ -138,18 +153,31 @@ export function TrainingBookingsAdmin({
                   <p className="line-clamp-2 text-xs text-[var(--muted-foreground)]">{customerMessage(b)}</p>
                 </div>
 
-                <select
-                  className="h-10 w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-2 text-xs"
-                  defaultValue={b.status}
-                  disabled={pending}
-                  onChange={(e) => setBookingStatus(b.id, e.target.value)}
-                >
-                  {trainingStatuses.map((s) => (
-                    <option key={s} value={s}>
-                      {statusLabels[s]}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex items-center gap-2">
+                  <select
+                    className="h-10 min-w-0 flex-1 rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-2 text-xs lg:max-w-[13rem]"
+                    defaultValue={b.status}
+                    disabled={pending}
+                    onChange={(e) => setBookingStatus(b.id, e.target.value)}
+                  >
+                    {trainingStatuses.map((s) => (
+                      <option key={s} value={s}>
+                        {statusLabels[s]}
+                      </option>
+                    ))}
+                  </select>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 shrink-0 text-rose-600 hover:bg-rose-500/10 hover:text-rose-700"
+                    disabled={pending}
+                    aria-label="Supprimer la réservation"
+                    onClick={() => confirmDeleteBooking(b.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </li>
           ))

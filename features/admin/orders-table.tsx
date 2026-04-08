@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import { Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
@@ -11,7 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { updateOrderStatus } from "@/actions/admin-orders";
+import { deleteOrder, updateOrderStatus } from "@/actions/admin-orders";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Order } from "@/types/database";
 
@@ -141,6 +144,7 @@ export function OrdersTable({
   productThumbsById: Record<string, string>;
   trainingThumbsById: Record<string, string>;
 }) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | Order["order_type"]>("all");
@@ -176,6 +180,17 @@ export function OrdersTable({
       const res = await updateOrderStatus({ id, status });
       if (res.ok) toast.success("Statut mis à jour");
       else toast.error(res.error ?? "Erreur");
+    });
+  }
+
+  function confirmDeleteOrder(id: string) {
+    if (!window.confirm("Supprimer définitivement cette commande ? Cette action est irréversible.")) return;
+    startTransition(async () => {
+      const res = await deleteOrder({ id });
+      if (res.ok) {
+        toast.success("Commande supprimée");
+        router.refresh();
+      } else toast.error(res.error ?? "Erreur");
     });
   }
 
@@ -270,18 +285,31 @@ export function OrdersTable({
               <p className="text-xs">{orderIntentLabel(o, productNamesById, trainingNamesById)}</p>
               <p className="text-xs text-[var(--muted-foreground)]">{customerMessage(o)}</p>
             </div>
-            <select
-              className="h-10 w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-2 text-xs"
-              defaultValue={o.status}
-              disabled={pending}
-              onChange={(e) => setStatus(o.id, e.target.value)}
-            >
-              {statusesForOrderType(o.order_type).map((s) => (
-                <option key={s} value={s}>
-                  {toStatusLabel(s)}
-                </option>
-              ))}
-            </select>
+            <div className="flex items-center gap-2">
+              <select
+                className="h-10 min-w-0 flex-1 rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-2 text-xs"
+                defaultValue={o.status}
+                disabled={pending}
+                onChange={(e) => setStatus(o.id, e.target.value)}
+              >
+                {statusesForOrderType(o.order_type).map((s) => (
+                  <option key={s} value={s}>
+                    {toStatusLabel(s)}
+                  </option>
+                ))}
+              </select>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 shrink-0 text-rose-600 hover:bg-rose-500/10 hover:text-rose-700"
+                disabled={pending}
+                aria-label="Supprimer la commande"
+                onClick={() => confirmDeleteOrder(o.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           </article>
         ))}
       </div>
@@ -297,7 +325,7 @@ export function OrdersTable({
               <TableHead>Demande client</TableHead>
               <TableHead>Statut</TableHead>
               <TableHead>Date</TableHead>
-              <TableHead className="w-[230px]">Mettre à jour</TableHead>
+              <TableHead className="min-w-[260px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -336,18 +364,31 @@ export function OrdersTable({
                   {new Date(o.created_at).toLocaleDateString("fr-FR")}
                 </TableCell>
                 <TableCell>
-                  <select
-                    className="h-9 w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-2 text-xs"
-                    defaultValue={o.status}
-                    disabled={pending}
-                    onChange={(e) => setStatus(o.id, e.target.value)}
-                  >
-                    {statusesForOrderType(o.order_type).map((s) => (
-                      <option key={s} value={s}>
-                        {toStatusLabel(s)}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex items-center gap-2">
+                    <select
+                      className="h-9 min-w-0 flex-1 rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-2 text-xs"
+                      defaultValue={o.status}
+                      disabled={pending}
+                      onChange={(e) => setStatus(o.id, e.target.value)}
+                    >
+                      {statusesForOrderType(o.order_type).map((s) => (
+                        <option key={s} value={s}>
+                          {toStatusLabel(s)}
+                        </option>
+                      ))}
+                    </select>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 shrink-0 text-rose-600 hover:bg-rose-500/10 hover:text-rose-700"
+                      disabled={pending}
+                      aria-label="Supprimer la commande"
+                      onClick={() => confirmDeleteOrder(o.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

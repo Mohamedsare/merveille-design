@@ -11,6 +11,10 @@ const updateSchema = z.object({
   admin_notes: z.string().optional(),
 });
 
+const deleteOrderSchema = z.object({
+  id: z.string().uuid(),
+});
+
 export async function updateOrderStatus(raw: unknown) {
   const parsed = updateSchema.safeParse(raw);
   if (!parsed.success) return { ok: false as const, error: "Invalide" };
@@ -44,6 +48,24 @@ export async function updateOrderStatus(raw: unknown) {
   });
 
   revalidatePath("/admin/dashboard/orders");
+  return { ok: true as const };
+}
+
+export async function deleteOrder(raw: unknown) {
+  const parsed = deleteOrderSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false as const, error: "Identifiant invalide" };
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return { ok: false as const, error: "Non configuré" };
+
+  const { id } = parsed.data;
+  const { error } = await supabase.from("orders").delete().eq("id", id);
+  if (error) return { ok: false as const, error: error.message };
+
+  await logAdminAuditEvent(supabase, "order_delete", { order_id: id });
+  revalidatePath("/admin/dashboard/orders");
+  revalidatePath("/admin/dashboard/trainings");
+  revalidatePath("/admin/dashboard/notifications");
+  revalidatePath("/admin/dashboard");
   return { ok: true as const };
 }
 
