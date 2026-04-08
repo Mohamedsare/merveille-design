@@ -63,7 +63,7 @@ export function TestimonialsSection({ settings }: { settings: SiteSettings }) {
         </div>
         <div className="mt-12 flex flex-wrap justify-center gap-8 text-center text-sm text-[var(--muted-foreground)]">
           <div>
-            <p className="font-display text-3xl font-semibold text-[var(--primary)]">500+</p>
+            <p className="font-display text-3xl font-semibold text-[var(--primary)]">100+</p>
             <p>Modèles & réalisations</p>
           </div>
           <div>
@@ -71,7 +71,7 @@ export function TestimonialsSection({ settings }: { settings: SiteSettings }) {
             <p>Satisfaction déclarée</p>
           </div>
           <div>
-            <p className="font-display text-3xl font-semibold text-[var(--primary)]">50+</p>
+            <p className="font-display text-3xl font-semibold text-[var(--primary)]">25+</p>
             <p>Apprenantes formées</p>
           </div>
         </div>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { AppPostHogProvider } from "@/components/providers/posthog-provider";
+import { SiteScrollEffects } from "@/components/site-scroll-effects";
 import { getPublicSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
@@ -63,6 +64,7 @@ export default function RootLayout({
     <html lang="fr" className={`${dmSans.variable} ${cormorant.variable} h-full`}>
       <body className="min-h-full antialiased">
         <AppPostHogProvider>
+          <SiteScrollEffects />
           {children}
           <Toaster position="top-center" richColors />
         </AppPostHogProvider>

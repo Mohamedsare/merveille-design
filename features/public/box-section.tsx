@@ -54,6 +54,7 @@ export function BoxSection({
             <div className="mt-8">
               <OrderSheet
                 mode="model"
+                formVariant="box_quote"
                 product={featured}
                 trigger={<Button size="lg">Demander un devis box</Button>}
               />

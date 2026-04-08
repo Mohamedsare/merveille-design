@@ -98,24 +98,46 @@ export default async function HomePage() {
       <PublicHeader settings={settings} />
       <main>
         <HeroSection settings={settings} />
-        <TrustBarSection />
-        <WhyChooseSection />
-        <ModelsGallery products={products} categories={categories} settings={settings} />
-        <LifestyleGallerySection settings={settings} products={products} />
-        <HowItWorksSection settings={settings} />
-        <BrandStorySection settings={settings} />
-        <BoxSection boxProducts={boxProducts} settings={settings} />
-        <TrainingsSection trainings={trainings} settings={settings} />
-        <TestimonialsSection settings={settings} />
+        <ScrollReveal>
+          <TrustBarSection />
+        </ScrollReveal>
+        <ScrollReveal delay={0.04}>
+          <WhyChooseSection />
+        </ScrollReveal>
+        <ScrollReveal delay={0.06}>
+          <ModelsGallery products={products} categories={categories} settings={settings} />
+        </ScrollReveal>
+        <ScrollReveal delay={0.08}>
+          <LifestyleGallerySection settings={settings} products={products} />
+        </ScrollReveal>
+        <ScrollReveal delay={0.1}>
+          <HowItWorksSection settings={settings} />
+        </ScrollReveal>
+        <ScrollReveal delay={0.06}>
+          <BrandStorySection settings={settings} />
+        </ScrollReveal>
+        <ScrollReveal delay={0.08}>
+          <BoxSection boxProducts={boxProducts} settings={settings} />
+        </ScrollReveal>
+        <ScrollReveal delay={0.1}>
+          <TrainingsSection trainings={trainings} settings={settings} />
+        </ScrollReveal>
+        <ScrollReveal delay={0.06}>
+          <TestimonialsSection settings={settings} />
+        </ScrollReveal>
         <ScrollReveal>
           <FAQSection settings={settings} />
         </ScrollReveal>
         <ScrollReveal delay={0.05}>
           <ContactSection settings={settings} />
         </ScrollReveal>
-        <FinalCtaSection />
+        <ScrollReveal delay={0.08}>
+          <FinalCtaSection />
+        </ScrollReveal>
       </main>
-      <PublicFooter settings={settings} />
+      <ScrollReveal delay={0.04}>
+        <PublicFooter settings={settings} />
+      </ScrollReveal>
       <MobileStickyCta whatsappNumber={settings.whatsapp_number ?? "22600000000"} />
       <WhatsAppFloat number={settings.whatsapp_number ?? "22600000000"} />
     </>

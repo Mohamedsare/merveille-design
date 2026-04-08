@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { Search } from "lucide-react";
+import { Search, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -48,7 +48,7 @@ export function ModelsGallery({
       <div className="mx-auto max-w-6xl">
         <div className="max-w-2xl">
           <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-            Galerie de modèles
+            100+ Modèles & réalisations
           </h2>
           <p className="mt-3 text-[var(--muted-foreground)]">
             Chaque pièce peut servir de base : couleurs, matières et finitions s’adaptent à votre style.
@@ -222,9 +222,19 @@ export function ModelsGallery({
 
         {visible < filtered.length ? (
           <div className="mt-10 flex justify-center">
-            <Button variant="secondary" onClick={() => setVisible((v) => v + 6)}>
-              Voir plus
-            </Button>
+            <div className="models-voir-plus-wrap">
+              <button
+                type="button"
+                className="models-voir-plus-inner"
+                onClick={() => setVisible((v) => v + 6)}
+              >
+                <Sparkles
+                  className="models-voir-plus-icon h-3.5 w-3.5 shrink-0 text-[var(--accent)]"
+                  aria-hidden
+                />
+                Voir plus
+              </button>
+            </div>
           </div>
         ) : null}
       </div>

@@ -18,15 +18,19 @@ import { useTrackEvent } from "@/hooks/use-analytics";
 import type { Product } from "@/types/database";
 
 type Mode = "model" | "custom";
+/** `box_quote` : libellés et champs orientés devis coffrets (section Box). */
+type FormVariant = "default" | "box_quote";
 
 export function OrderSheet({
   mode,
   product,
   trigger,
+  formVariant = "default",
 }: {
   mode: Mode;
   product: Product;
   trigger: React.ReactNode;
+  formVariant?: FormVariant;
 }) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -64,10 +68,19 @@ export function OrderSheet({
       <SheetContent side="bottom" className="h-auto max-h-[92vh] overflow-y-auto rounded-t-3xl">
         <SheetHeader>
           <SheetTitle>
-            {mode === "model" ? "Commander ce modèle" : "Demande de personnalisation"}
+            {mode === "custom"
+              ? "Demande de personnalisation"
+              : formVariant === "box_quote"
+                ? "Demande de devis — box & coffrets"
+                : "Commander ce modèle"}
           </SheetTitle>
           <p className="text-left text-sm text-[var(--muted-foreground)]">{product.name}</p>
-          {mode === "model" ? (
+          {mode === "model" && formVariant === "box_quote" ? (
+            <p className="text-left text-sm text-[var(--muted-foreground)]">
+              Emballages sur mesure pour vos marques et événements. Indiquez vos coordonnées et une quantité approximative
+              : nous vous rappelons pour établir votre devis.
+            </p>
+          ) : mode === "model" ? (
             <p className="text-left text-sm text-[var(--muted-foreground)]">
               Laissez vos coordonnées et la quantité souhaitée : nous vous rappelons pour confirmer la commande de ce
               modèle.
@@ -101,9 +114,25 @@ export function OrderSheet({
           </div>
           <input type="hidden" name="country" value="Burkina Faso" />
           <div className="space-y-2">
-            <Label htmlFor="quantity">Quantité</Label>
+            <Label htmlFor="quantity">
+              {mode === "model" && formVariant === "box_quote"
+                ? "Quantité estimée (coffrets)"
+                : "Quantité"}
+            </Label>
             <Input id="quantity" name="quantity" type="number" min={1} defaultValue={1} />
           </div>
+
+          {mode === "model" && formVariant === "box_quote" ? (
+            <div className="space-y-2">
+              <Label htmlFor="details">Précisions sur votre besoin (optionnel)</Label>
+              <Textarea
+                id="details"
+                name="details"
+                placeholder="Type d’événement, délai, marquage logo, format souhaité…"
+                rows={3}
+              />
+            </div>
+          ) : null}
 
           {mode === "custom" ? (
             <>
@@ -125,15 +154,6 @@ export function OrderSheet({
                 </p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="details">Votre projet (optionnel)</Label>
-                <Textarea
-                  id="details"
-                  name="details"
-                  placeholder="Décrivez le modèle, l’usage, les contraintes…"
-                  rows={4}
-                />
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="customization_request">Personnalisation souhaitée</Label>
                 <Textarea
                   id="customization_request"
@@ -147,9 +167,11 @@ export function OrderSheet({
           <Button type="submit" className="w-full" disabled={pending}>
             {pending
               ? "Envoi…"
-              : mode === "model"
-                ? "Envoyer ma demande de commande"
-                : "Envoyer ma demande de personnalisation"}
+              : mode === "model" && formVariant === "box_quote"
+                ? "Envoyer ma demande de devis"
+                : mode === "model"
+                  ? "Envoyer ma demande de commande"
+                  : "Envoyer ma demande de personnalisation"}
           </Button>
         </form>
       </SheetContent>
